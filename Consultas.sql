@@ -1,4 +1,4 @@
--- Quadro com dados do cliente com impostos
+-- Quadro com dados do cliente com impostos cAliasC5
 
 SELECT 
 	C5_NUM, 
@@ -6,7 +6,7 @@ SELECT
 	A1_END AS CLI_ENDERECO, 
 	A1_CEP AS CLI_CEP, 
 	A1_MUN AS CLI_MUNICIPIO, 
-	A1_ESTC AS CLI_UF, 
+	A1_EST AS CLI_UF, 
 	A1_TEL AS CLI_TELEFONE, 
 	A1_CGC AS CLI_CNPJ, 
 	A1_INSCR AS CLI_IE, 
@@ -26,12 +26,12 @@ SELECT
 	END AS DATA_ENTREGA, -- Este dado não foi encontrado verificar se existe no cliente
 	CASE 
 		WHEN C5_FECENT <> '' 
-		THEN C5_FECENT 
+		THEN 'C5_FECENT' 
 		ELSE 
 			CASE 
 				WHEN C5_SUGENT <> '' 
-				THEN C5_SUGENT 
-				ELSE C6_ENTREG 
+				THEN 'C5_SUGENT' 
+				ELSE 'C6_ENTREG' 
 			END 
 	END AS DATA_ENTREGA_ORI, 
 	A3_COD + ' - ' + A3_NOME AS REPRESENTANTE, 
@@ -46,6 +46,11 @@ FROM
 		AND C5_LOJACLI = A1_LOJA 
 		AND A1_FILIAL = '' 
 		AND SA1.D_E_L_E_T_ = '' 
+	INNER JOIN 
+		SC6010 SC6 
+		ON C5_NUM = C6_NUM 
+		AND C6_FILIAL = '0101' 
+		AND SC6.D_E_L_E_T_ = '' 
 	LEFT JOIN 
 		SA3010 SA3 
 		ON C5_VEND1 = A3_COD 
@@ -56,7 +61,7 @@ WHERE
 	AND C5_FILIAL = '0101' 
 	AND SC5.D_E_L_E_T_ = '' 
 
--- Quadro de itens do pedido com impostos
+-- Quadro de itens do pedido com impostos cAliasC6
 
 SELECT 
 	C5_NUM, 
