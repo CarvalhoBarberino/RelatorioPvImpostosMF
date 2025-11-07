@@ -1,0 +1,27 @@
+Impressora local:
+
+L_{X}=\frac{159}{490}
+
+L_{Y}=\frac{32.2}{100}
+
+\frac{44.5}{L_{X}}
+
+\frac{44.5}{L_{Y}}
+
+400\cdot L_{X}
+
+400\cdot L_{Y}
+
+comparado com a MIT044:
+
+L_{X}=\frac{115.1256}{490}
+
+L_{Y}=\frac{23.314}{100}
+
+\frac{44.5}{L_{X}}
+
+\frac{44.5}{L_{Y}}
+
+400\cdot L_{X}
+
+400\cdot L_{Y}

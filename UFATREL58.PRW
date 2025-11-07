@@ -3,7 +3,7 @@
 #INCLUDE "RPTDef.ch"
 
 #DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
-#DEFINE MOSTRA_QUERY
+//#DEFINE MOSTRA_QUERY
 #DEFINE IMP_SPOOL		2
 #DEFINE IMP_PDF			6
 #DEFINE SEM_SETUP		.T.
@@ -23,8 +23,13 @@ user function UFATREL58()
 	local aDadosIt			:= {}
 	local aCampos			:= {}
 	local aMedidas			:= {}
+	local aAlinhamento		:= {}
 	local aDados			:= {}
 	local cArea				:= getArea()
+	local nRowBase1			:= 0
+	local nColBase1			:= 0
+	local nRowBase2			:= 0
+	local nColBase2			:= 0
 
 	cPedido := FWInputBox("Digite o pedido:", cPedido)
 
@@ -141,23 +146,26 @@ user function UFATREL58()
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC6, .F., .T.)
 	dbSelectArea(cAliasC6)
 
+
+
 	(cAliasC6)->(dbGoTop())
 	aDados := {}
 	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
-	aMedidas := {23, 30, 30, 30, 15, 46, 108, 38, 38, 15, 23}
+	aMedidas := {29, 38, 38, 33, 24, 66, 177, 53, 58, 29, 45}
+	aAlinhamento := {2, 1, 2, 2, 2, 2, 0, 1, 1, 1, 1}
 	while !(cAliasC6)->(eOF())
 		aDadosIt := {}
 		aAdd(aDadosIt, (cAliasC6)->ITEM)
-		aAdd(aDadosIt, cValToChar((cAliasC6)->DESCON))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
 		aAdd(aDadosIt, cValToChar((cAliasC6)->QUANT))
 		aAdd(aDadosIt, cValToChar((cAliasC6)->EMB))
 		aAdd(aDadosIt, (cAliasC6)->UNIDADE)
 		aAdd(aDadosIt, (cAliasC6)->CODIGO_FAMA)
 		aAdd(aDadosIt, (cAliasC6)->DESCRICAO)
-		aAdd(aDadosIt, cValToChar((cAliasC6)->VALOR_UNI))
-		aAdd(aDadosIt, cValToChar((cAliasC6)->VALOR_TOTAL))
-		aAdd(aDadosIt, cValToChar((cAliasC6)->IPI_PORCENT))
-		aAdd(aDadosIt, cValToChar((cAliasC6)->IPI_VAL))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9.999,99")))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99.999,99")))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_PORCENT, "@E 99.99")))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_VAL, "@E 9.999,99")))
 		aAdd(aDados, aDadosIt)
 		(cAliasC6)->(dbSkip())
 	endDo
@@ -185,21 +193,57 @@ user function UFATREL58()
 		/*nQtdCopy*/)
 		oPrinter:SetPortrait()
 	oPrinter:SetPaperSize(DMPAPER_A4)
-	oPrinter:SetMargin(10,10,10,10) // nEsquerda, nSuperior, nDireita, nInferior
+	oPrinter:SetMargin(3,10,3,10) // nEsquerda, nSuperior, nDireita, nInferior
 	oPrinter:cPathPDF := "C:\TEMP\" // Caso seja utilizada impressï¿½o em IMP_SPOOL
 	oPrinter:StartPage()
 
-	oPrinter:Say(200, 100, (cAliasC5)->CLI_NOME, oArial15, 15,,)
-	oPrinter:Say(220, 100, (cAliasC5)->CLI_ENDERECO, oArial15, 15,,)
-	oPrinter:Say(220, 500, (cAliasC5)->CLI_CEP, oArial15, 15,,)
-	oPrinter:Say(240, 100, (cAliasC5)->CLI_MUNICIPIO, oArial15, 15,,)
-	oPrinter:Say(240, 300, (cAliasC5)->CLI_UF, oArial15, 15,,)
-	oPrinter:Say(240, 500, (cAliasC5)->CLI_TELEFONE, oArial15, 15,,)
-	oPrinter:Say(260, 100, (cAliasC5)->CLI_CNPJ, oArial15, 15,,)
-	oPrinter:Say(260, 200, (cAliasC5)->CLI_IE, oArial15, 15,,)
-	oPrinter:Say(260, 400, (cAliasC5)->CLI_EMAIL, oArial15, 15,,)
+	nRowBase1 := 0
+	nColBase1 := 0
+	nColBase2 := 590
+	oPrinter:Box(nRowBase1 + 76, nColBase1 + 4, nRowBase1 + 136, nColBase1 + nColBase2, "-2")
+	oPrinter:SayAlign(nRowBase1 + 76, nColBase1 + 4, "MOLAS FAMA", oArial15, nColBase2, 30, , 2, 2)
+	oPrinter:SayAlign(nRowBase1 + 93, nColBase1 + 4, "FAMA DO BRASIL IND DE MOLAS E AUTO PECAS LTDA", oArial15, nColBase2, 30, , 2, 2)
+	oPrinter:SayAlign(nRowBase1 + 106, nColBase1 + 4, "ROD. BR 376 KM 232, S/N SAIDA P/ MARINGA - CAIXA POSTAL 917, APUCARANA/PR - Fone: (43) 3420-9000 Fax: (43) 3420-9001", oArial15, nColBase2, 30, , 2, 2)
 
-	jukTab(500, 100, 25, aMedidas, aCampos, aDados, @oPrinter, @oArial15)
+	nRowBase1 := 160
+	nColBase1 := 0
+	nColBase2 := 590
+	oPrinter:Box(nRowBase1 + 00, nColBase1 + 4, nRowBase1 + 83, nColBase1 + nColBase2, "-2")
+	oPrinter:Say(nRowBase1 + 12, nColBase1 + 8, "Cliente: ", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 12, nColBase1 + 8 + 46, (cAliasC5)->CLI_NOME, oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 32, nColBase1 + 8, "Endereço", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 32, nColBase1 + 8 + 46 + 12, (cAliasC5)->CLI_ENDERECO, oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 32, nColBase1 + 480, "Cep: ", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 32, nColBase1 + 480 + 46 - 18, Alltrim(Transform((cAliasC5)->CLI_CEP, "@R 99999-999")), oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 52, nColBase1 + 8, "Cidade: ", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 52, nColBase1 + 8 + 46, (cAliasC5)->CLI_MUNICIPIO, oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 52, nColBase1 + 300, "Estado: ", oArial15, 0,,)
+	oPrinter:Say(nRowBase1 + 52, nColBase1 + 300 + 46, (cAliasC5)->CLI_UF, oArial15, 0,,)
+	oPrinter:Say(nRowBase1 + 52, nColBase1 + 408, "Fone/Fax: ", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 52, nColBase1 + 408 + 46 + 15, Alltrim(Transform((cAliasC5)->CLI_TELEFONE, "@R (99) 9 9999-9999")), oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 72, nColBase1 + 8, "CNPJ: ", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 72, nColBase1 + 8 + 46 - 10, Alltrim(Transform((cAliasC5)->CLI_CNPJ, "@R 99.999.999/9999-99")), oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 72, nColBase1 + 319, "Inscrição estadual: ", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 72, nColBase1 + 319 + 46 + 64, (cAliasC5)->CLI_IE, oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 72, nColBase1 + 357, "E-mail: ", oArial15, 15,,)
+	oPrinter:Say(nRowBase1 + 72, nColBase1 + 357 + 46, (cAliasC5)->CLI_EMAIL, oArial15, 15,,)
+
+	jukTab(nRowBase1 + 123, nColBase1 + 4, 25, aMedidas, aAlinhamento, aCampos, aDados, @oPrinter, @oArial15)
+
+	#IFDEF MOSTRA_QUERY
+		oPrinter:Box(500, 500, 600, 600, "-2")
+		oPrinter:Say(600, 600, "600x600", oArial15, 15,,)
+		oPrinter:Box(400, 400, 500, 500, "-2")
+		oPrinter:Say(500, 500, "500x500", oArial15, 15,,)
+		oPrinter:Box(300, 300, 400, 400, "-2")
+		oPrinter:Say(400, 400, "400x400", oArial15, 15,,)
+		oPrinter:Box(200, 200, 300, 300, "-2")
+		oPrinter:Say(300, 300, "300x300", oArial15, 15,,)
+		oPrinter:Box(100, 100, 200, 200, "-2")
+		oPrinter:Say(200, 200, "200x200", oArial15, 15,,)
+		oPrinter:Box(700, 10, 700 + 20, 300, "-2")
+		oPrinter:SayAlign(700, 10, "align:700x10x300", oArial15, 300, 20, , 2, 2)
+	#ENDIF
 
 	oPrinter:EndPage()
 	If TESTE_PDF
@@ -214,7 +258,7 @@ user function UFATREL58()
 	restArea(cArea)
 return
 
-static function jukTab(nRowInicio, nColInicio, nRowHeight, aWidth, aFields, aData, oPrinterRec, oFontRec)
+static function jukTab(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFields, aData, oPrinterRec, oFontRec)
 	local nRowCount		:= 1
 	local nColCount		:= 1
 	local nRow_0		:= nRowInicio
@@ -236,6 +280,7 @@ static function jukTab(nRowInicio, nColInicio, nRowHeight, aWidth, aFields, aDat
 			nCol_1 := nCol_0 + aWidth[nColCount]
 			oPrinterRec:Box(nRow_0, nCol_0, nRow_0 - nRowHeight, nCol_1, "-2")
 			oPrinterRec:Say(nRow_0, nCol_0, aData[nRowCount][nColCount], oFontRec, nRowHeight,,)
+			oPrinterRec:SayAlign(nRow_0 - nRowHeight, nCol_0, aData[nRowCount][nColCount], oFontRec, aWidth[nColCount], nRowHeight, , aAlign[nColCount], 0)
 			nCol_0 := nCol_1
 		next
 		nCol_0 := nColInicio
