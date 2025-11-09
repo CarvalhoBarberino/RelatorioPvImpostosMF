@@ -15,6 +15,9 @@
 #DEFINE PAD_CENTER_V	0
 #DEFINE PAD_TOP			1
 #DEFINE PAD_BOTTOM		2
+#DEFINE IPI_VAL			1
+#DEFINE IPI_PORCENT		2
+#DEFINE VALSOL			3
 
 user function UFATREL58()
 	local oPrinter
@@ -37,6 +40,8 @@ user function UFATREL58()
 	local nColBase1			:= 0
 	local nRowBase2			:= 0
 	local nColBase2			:= 0
+	local nI				:= 0
+	local aImpostos			:= {}
 
 	cPedido := FWInputBox("Digite o pedido:", cPedido)
 
@@ -81,6 +86,11 @@ user function UFATREL58()
 	cQy += "	A3_COD + ' - ' + A3_NOME AS REPRESENTANTE, " + CRLF
 	cQy += "	C5_TPFRETE, " + CRLF
 	cQy += "	C5_FRETE, " + CRLF
+	cQy += "	C5_SEGURO, " + CRLF
+	cQy += "	C5_DESPESA, " + CRLF
+	cQy += "	C5_DESCONT, " + CRLF
+	cQy += "	C5_PDESCAB, " + CRLF
+	cQy += "	C5_FRETAUT, " + CRLF
 	cQy += "	C5_TRANSP " + CRLF
 	cQy += "FROM " + CRLF
 	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
@@ -107,39 +117,38 @@ user function UFATREL58()
 	#IFDEF MOSTRA_QUERY
 		showLog(cQy)
 	#ENDIF
-
 	if select(cAliasC5) > 0
 		dbSelectArea(cAliasC5)
 		(cAliasC5)->(dbCloseArea())
 	ENDIF
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC5, .F., .T.)
 	dbSelectArea(cAliasC5)
+	if (cAliasC5)->(eOF())
+		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
+		FWRestArea(cArea)
+		return
+	endIf
 
 	cQy := "SELECT " + CRLF
 	cQy += "	C5_NUM, " + CRLF
 	cQy += "	C6_NFORI, " + CRLF
 	cQy += "	C6_SERIORI, " + CRLF
-	cQy += "	SB1.R_E_C_N_O_, " + CRLF
+	cQy += "	SB1.R_E_C_N_O_ AS SB1_REC, " + CRLF
 	cQy += "	C6_ITEM AS ITEM, " + CRLF
 	cQy += "	C6_DESCONT AS DESCON, " + CRLF
 	cQy += "	C6_QTDVEN AS QUANT, " + CRLF
 	cQy += "	B1_QE AS EMB, " + CRLF
 	cQy += "	C6_UM AS UNIDADE, " + CRLF
 	cQy += "	B1_COD AS CODIGO_FAMA, " + CRLF
+	cQy += "	B1_PESO, " + CRLF
 	cQy += "	C6_PRODUTO, " + CRLF
 	cQy += "	C6_TES, " + CRLF
 	cQy += "	B1_DESC AS DESCRICAO, " + CRLF
+	cQy += "	B1_GRUPO, " + CRLF
 	cQy += "	C6_VALDESC, " + CRLF
 	cQy += "	C6_PRCVEN AS VALOR_UNI, " + CRLF
 	cQy += "	C6_VALOR AS VALOR_TOTAL, " + CRLF
-	cQy += "	0.00 AS IPI_PORCENT, " + CRLF
-	cQy += "	0.00 AS IPI_VAL, " + CRLF
-	cQy += "	C5_FRETE, " + CRLF
-	cQy += "	C5_SEGURO, " + CRLF
-	cQy += "	C5_DESPESA, " + CRLF
-	cQy += "	C5_FRETAUT, " + CRLF
-	cQy += "	C5_DESCONT, " + CRLF
-	cQy += "	C5_PDESCAB " + CRLF
+	cQy += "	C5_FRETE " + CRLF
 	cQy += "FROM " + CRLF
 	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
 	cQy += "	INNER JOIN " + CRLF
@@ -161,37 +170,93 @@ user function UFATREL58()
 	#IFDEF MOSTRA_QUERY
 		showLog(cQy)
 	#ENDIF
-
 	if select(cAliasC6) > 0
 		dbSelectArea(cAliasC6)
 		(cAliasC6)->(dbCloseArea())
 	ENDIF
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC6, .F., .T.)
 	dbSelectArea(cAliasC6)
+	if (cAliasC6)->(eOF())
+		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
+		FWRestArea(cArea)
+		return
+	endIf
 
+	MaFisIni(;
+		(cAliasC5)->C5_CLIENTE, ;
+		(cAliasC5)->C5_LOJACLI, ;
+		Iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
+		(cAliasC5)->C5_TIPO, ;
+		(cAliasC5)->C5_TIPOCLI, ;
+		MaFisRelImp("MT100", {"SF2", "SD2"}) /*Relacao de Impostos que suportados no arquivo*/, ;
+		/*Tipo de complemento*/, ;
+		/*Permite Incluir Impostos no Rodape .T./.F.*/, ;
+		"SB1" /*Alias do Cadastro de Produtos - ("SBI" P/ Front Loja)*/, ;
+		"MATA461" /*Nome da rotina que esta utilizando a funcao*/;
+		)
 
-
+	nI := 0
 	(cAliasC6)->(dbGoTop())
-	aDados := {}
-	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
-	aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
-	aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
 	while !(cAliasC6)->(eOF())
-		aDadosIt := {}
-		aAdd(aDadosIt, (cAliasC6)->ITEM)
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
-		aAdd(aDadosIt, cValToChar((cAliasC6)->QUANT))
-		aAdd(aDadosIt, cValToChar((cAliasC6)->EMB))
-		aAdd(aDadosIt, (cAliasC6)->UNIDADE)
-		aAdd(aDadosIt, Alltrim((cAliasC6)->CODIGO_FAMA))
-		aAdd(aDadosIt, Alltrim((cAliasC6)->DESCRICAO))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9.999,99")))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99.999,99")))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_PORCENT, "@E 99.99")))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_VAL, "@E 9.999,99")))
-		aAdd(aDados, aDadosIt)
+		nI++
+		MaFisAdd(;
+			(cAliasC6)->C6_PRODUTO, ;
+			(cAliasC6)->C6_TES, ;
+			(cAliasC6)->QUANT, ;
+			(cAliasC6)->VALOR_UNI, ;
+			(cAliasC6)->C6_VALDESC, ;
+			(cAliasC6)->C6_NFORI, ;
+			(cAliasC6)->C6_SERIORI, ;
+			0 /*RecNo da NF Original no arq SD1/SD2*/,;
+			0 /*Valor do Frete do Item               ( Opcional )*/, ;
+			0 /*Valor da Despesa do item             ( Opcional )*/, ;
+			0 /*Valor do Seguro do item              ( Opcional )*/, ;
+			0 /*Valor do Frete Autonomo              ( Opcional )*/, ;
+			(cAliasC6)->VALOR_TOTAL /*Valor da Mercadoria                  ( Obrigatorio )*/, ;
+			0 /*Valor da Embalagem                   ( Opcional )*/, ;
+			(cAliasC6)->SB1_REC /*RecNo do SB1*/, ;
+			0 /*RecNo do SF4*/)
+		MaFisLoad("IT_VALMERC", (cAliasC6)->VALOR_TOTAL, nI)
+		MaFisAlt("IT_PESO", (cAliasC6)->B1_PESO, nI)
 		(cAliasC6)->(dbSkip())
 	endDo
+
+	MaFisAlt("NF_FRETE", (cAliasC5)->C5_FRETE)
+	MaFisAlt("NF_SEGURO", (cAliasC5)->C5_SEGURO)
+	MaFisAlt("NF_DESPESA", (cAliasC5)->C5_DESPESA)
+	MaFisAlt("NF_AUTONOMO", (cAliasC5)->C5_FRETAUT)
+	If (cAliasC5)->C5_DESCONT > 0
+		MaFisAlt(;
+			"NF_DESCONTO", ;
+			Min(MaFisRet(, "NF_VALMERC")-0.01, (cAliasC5)->C5_DESCONT+MaFisRet(, "NF_DESCONTO"));
+			)
+	EndIf
+	If (cAliasC5)->C5_PDESCAB > 0
+		MaFisAlt(;
+			"NF_DESCONTO", ;
+			A410Arred(MaFisRet(, "NF_VALMERC") * (cAliasC5)->C5_PDESCAB / 100, "C6_VALOR") + MaFisRet(, "NF_DESCONTO");
+			)
+	EndIf
+
+	nI := 0
+	(cAliasC6)->(dbGoTop())
+	aImpostos := {}
+	while !(cAliasC6)->(eOF())
+		nI++
+		aAdd(aImpostos, {})
+		aAdd(aImpostos[nI], grupo)
+		aAdd(aImpostos[nI], descontos)
+		aAdd(aImpostos[nI], valorliquido)
+		aAdd(aImpostos[nI], MaFisRet(nI, "IT_ALIQIPI"))
+		aAdd(aImpostos[nI], MaFisRet(nI, "IT_VALIPI"))
+		aAdd(aImpostos[nI], MaFisRet(nI, "IT_VALSOL"))
+		aAdd(aImpostos[nI], totalcomimpostos)
+		aAdd(aImpostos[nI], pwsoliquido)
+		aAdd(aImpostos[nI], quantidade)
+		(cAliasC6)->(dbSkip())
+		showLog("IPI_VAL: " + cValToChar((cAliasC6)->IPI_VAL) + CRLF + "IPI_PORCENT: " + cValToChar((cAliasC6)->IPI_PORCENT) + CRLF + "VALSOL: " + cValToChar((cAliasC6)->VALSOL))
+	endDo
+	MaFisEnd()
 
 	#IFDEF MOSTRA_QUERY
 		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
@@ -222,6 +287,28 @@ user function UFATREL58()
 	cabFama(@oPrinter, 1 /*nPaginaAtual*/, 2 /*nPaginaTotal*/)
 	cabC5(@oPrinter, cAliasC5)
 
+	aDados := {}
+	(cAliasC6)->(dbGoTop())
+	while !(cAliasC6)->(eOF())
+		aDadosIt := {}
+		aAdd(aDadosIt, (cAliasC6)->ITEM)
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
+		aAdd(aDadosIt, cValToChar((cAliasC6)->QUANT))
+		aAdd(aDadosIt, cValToChar((cAliasC6)->EMB))
+		aAdd(aDadosIt, (cAliasC6)->UNIDADE)
+		aAdd(aDadosIt, Alltrim((cAliasC6)->CODIGO_FAMA))
+		aAdd(aDadosIt, Alltrim((cAliasC6)->DESCRICAO))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9.999,99")))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99.999,99")))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_PORCENT, "@E 99.99")))
+		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_VAL, "@E 9.999,99")))
+		aAdd(aDados, aDadosIt)
+		(cAliasC6)->(dbSkip())
+	endDo
+
+	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
+	aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
+	aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
 	itensC6(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aDados, @oPrinter)
 
 	#IFDEF MOSTRA_QUERY
@@ -237,7 +324,7 @@ user function UFATREL58()
 		oPrinter:Say(200, 200, "200x200", oArial10, 15,,)
 		oPrinter:Box(700, 100, 730, 300, "-2")
 		oPrinter:SayAlign(700, 100, "TEXTO", oArial10, 200, 30, , PAD_CENTER_H, )
-		
+
 	#ENDIF
 
 	oPrinter:EndPage()
