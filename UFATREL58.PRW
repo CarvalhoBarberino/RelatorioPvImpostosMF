@@ -206,7 +206,7 @@ user function UFATREL58()
 	cabFama(@oPrinter, 1 /*nPaginaAtual*/, 2 /*nPaginaTotal*/)
 	cabC5(@oPrinter, cAliasC5)
 
-	itensC6(nRowBase1 + 423, nColBase1 + 4, 25, aMedidas, aAlinhamento, aCampos, aDados, @oPrinter)
+	itensC6(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aDados, @oPrinter)
 
 	#IFDEF MOSTRA_QUERY
 		oPrinter:Box(500, 500, 600, 600, "-2")
@@ -243,13 +243,14 @@ static function itensC6(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFie
 	local nRow_0		:= nRowInicio
 	local nCol_0		:= nColInicio
 	local nCol_1
-	local oArial07		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 7 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial07b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 7 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local nMargemCel	:= 3
+	local oArial08		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 8 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial08b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 8 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 
 	for nColCount := 1 to len(aFields)
 		nCol_1 := nCol_0 + aWidth[nColCount]
 		oPrinterRec:Box(nRow_0, nCol_0, nRow_0 - nRowHeight, nCol_1, "-2")
-		oPrinterRec:SayAlign(nRow_0 - nRowHeight, nCol_0, aFields[nColCount], oArial07b, aWidth[nColCount], nRowHeight, , 2, 0)
+		oPrinterRec:SayAlign(nRow_0 - nRowHeight, nCol_0 + nMargemCel, aFields[nColCount], oArial08b, aWidth[nColCount] - 2 * nMargemCel, nRowHeight, , 2, 0)
 		nCol_0 := nCol_1
 	next
 
@@ -259,7 +260,7 @@ static function itensC6(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFie
 		for nColCount := 1 to len(aData[nRowCount])
 			nCol_1 := nCol_0 + aWidth[nColCount]
 			oPrinterRec:Box(nRow_0, nCol_0, nRow_0 - nRowHeight, nCol_1, "-2")
-			oPrinterRec:SayAlign(nRow_0 - nRowHeight, nCol_0, aData[nRowCount][nColCount], oArial07, aWidth[nColCount], nRowHeight, , aAlign[nColCount], 0)
+			oPrinterRec:SayAlign(nRow_0 - nRowHeight, nCol_0 + nMargemCel, aData[nRowCount][nColCount], oArial08, aWidth[nColCount] - 2 * nMargemCel, nRowHeight, , aAlign[nColCount], 0)
 			nCol_0 := nCol_1
 		next
 		nCol_0 := nColInicio
@@ -271,30 +272,32 @@ static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 
 	local nRowBase1		:= 76
 	local nColBase1		:= 4
-	local nLarguraCab	:= 590
-	local nDeltaY1		:= 13
-	local nDeltaY2		:= 11
-	local oArial18		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial13		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 13 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial07		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 7 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local nLarguraCab	:= 586
+	local nDeltaY1		:= 19.5
+	local nDeltaY2		:= 17
+	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial15		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial08		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 8 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial11		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 11 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local cPagina		:= "Pagina " + cValToChar(nPagina) + "/" + cValToChar(nPaginaTot)
 	local cStamp		:= "Impresso em "+ dToC(Date()) + " - " + Time()
 
-	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60, nColBase1 + nLarguraCab, "-2")
-	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1, cPagina, oArial07, nLarguraCab, 20, , PAD_CENTER_H, 1)
-	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1 + round(nLarguraCab / 2, 0), cStamp, oArial07, round(nLarguraCab / 2, 0), 20, , PAD_RIGHT, 2)
-	oPrinterRec:SayAlign(nRowBase1 + 0, nColBase1, "M O L A S   F A M A", oArial18, nLarguraCab, 30, , PAD_CENTER_H, 2)
-	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1, "FAMA DO BRASIL IND DE MOLAS E AUTO PECAS LTDA", oArial13, nLarguraCab, nDeltaY1, , PAD_CENTER_H, 2)
-	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1 + nDeltaY2, nColBase1, "ROD. BR 376 KM 232, S/N SAIDA P/ MARINGA - CAIXA POSTAL 917, APUCARANA/PR - Fone: (43) 3420-9000 Fax: (43) 3420-9001", oArial07, nLarguraCab, nDeltaY2, , PAD_CENTER_H, 2)
+	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60, nColBase1 + nLarguraCab - 4, "-2")
+	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1, cPagina, oArial08, nLarguraCab, 20, , PAD_CENTER_H, 1)
+	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1 + round(nLarguraCab / 2, 0), cStamp, oArial08, round(nLarguraCab / 2, 0), 20, , PAD_RIGHT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 0, nColBase1, "M O L A S   F A M A", oArial18b, nLarguraCab, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1, "FAMA DO BRASIL IND DE MOLAS E AUTO PECAS LTDA", oArial15, nLarguraCab, nDeltaY1, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1 + nDeltaY2, nColBase1, "ROD. BR 376 KM 232, S/N SAIDA P/ MARINGA - CAIXA POSTAL 917, APUCARANA/PR - Fone: (43) 3420-9000 Fax: (43) 3420-9001", oArial11, nLarguraCab, nDeltaY2, , PAD_CENTER_H, 2)
 
 return
 
 static function cabC5(oPrinterRec, cAliasC5)
 
-	local nRowBase1		:= 160
+	local nRowBase1		:= 132
 	local nColBase1		:= 0
-	local nLarguraCab	:= 590
-	local nDeltaY1		:= 12
+	local nLarguraCab	:= 586
+	local nDeltaY1		:= 10
+	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 
@@ -308,15 +311,16 @@ static function cabC5(oPrinterRec, cAliasC5)
 	oPrinterRec:Say(nRowBase1 + 3 * nDeltaY1, nColBase1 + 8, "Cidade: ", oArial12b, 15,,)
 	oPrinterRec:Say(nRowBase1 + 3 * nDeltaY1, nColBase1 + 8 + 53, (cAliasC5)->CLI_MUNICIPIO, oArial12, 15,,)
 	oPrinterRec:Say(nRowBase1 + 3 * nDeltaY1, nColBase1 + 300, "Estado: ", oArial12b, 0,,)
-	oPrinterRec:Say(nRowBase1 + 3 * nDeltaY1, nColBase1 + 300 + 46, (cAliasC5)->CLI_UF, oArial12, 0,,)
+	oPrinterRec:Say(nRowBase1 + 3 * nDeltaY1, nColBase1 + 338, (cAliasC5)->CLI_UF, oArial12, 0,,)
 	oPrinterRec:Say(nRowBase1 + 3 * nDeltaY1, nColBase1 + 408, "Fone/Fax: ", oArial12b, 15,,)
 	oPrinterRec:Say(nRowBase1 + 3 * nDeltaY1, nColBase1 + 408 + 46 + 15, Alltrim(Transform((cAliasC5)->CLI_TELEFONE, "@R (99) 9 9999-9999")), oArial12, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 8, "CNPJ: ", oArial12b, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 8 + 53, Alltrim(Transform((cAliasC5)->CLI_CNPJ, "@R 99.999.999/9999-99")), oArial12, 15,,)
-	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 8 + 194, "Inscrição estadual: ", oArial12b, 15,,)
-	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 164 + 110, (cAliasC5)->CLI_IE, oArial12, 15,,)
+	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 8 + 194, "Inscrição: ", oArial12b, 15,,)
+	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 249, (cAliasC5)->CLI_IE, oArial12, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 357, "E-mail: ", oArial12b, 15,,)
-	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 357 + 46, (cAliasC5)->CLI_EMAIL, oArial12, 15,,)
+	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 392, (cAliasC5)->CLI_EMAIL, oArial12, 15,,)
+	oPrinterRec:SayAlign(nRowBase1 + 4 * nDeltaY1 + 17, nColBase1, "Pedido", oArial18b, nLarguraCab, 16, , PAD_CENTER_H, 2)
 
 return
 
