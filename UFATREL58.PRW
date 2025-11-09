@@ -32,7 +32,7 @@ user function UFATREL58()
 	local aMedidas			:= {}
 	local aAlinhamento		:= {}
 	local aDados			:= {}
-	local cArea				:= getArea()
+	local cArea				:= FWGetArea()
 	local nRowBase1			:= 0
 	local nColBase1			:= 0
 	local nRowBase2			:= 0
@@ -42,6 +42,9 @@ user function UFATREL58()
 
 	cQy := "SELECT " + CRLF
 	cQy += "	C5_NUM, " + CRLF
+	cQy += "	C5_CLIENTE, " + CRLF
+	cQy += "	C5_LOJACLI, " + CRLF
+	cQy += "	C5_TIPOCLI, " + CRLF
 	cQy += "	A1_NOME AS CLI_NOME, " + CRLF
 	cQy += "	A1_END AS CLI_ENDERECO, " + CRLF
 	cQy += "	A1_CEP AS CLI_CEP, " + CRLF
@@ -53,6 +56,7 @@ user function UFATREL58()
 	cQy += "	A1_EMAIL AS CLI_EMAIL, " + CRLF
 	cQy += "	C5_EMISSAO AS EMISSAO, " + CRLF
 	cQy += "	C5_NUM AS PEDIDO, " + CRLF
+	cQy += "	C5_TIPO, " + CRLF
 	cQy += "	C5_CONDPAG AS CONDICAO_PAG, " + CRLF
 	cQy += "	CASE " + CRLF
 	cQy += "		WHEN C5_FECENT <> '' " + CRLF
@@ -113,17 +117,29 @@ user function UFATREL58()
 
 	cQy := "SELECT " + CRLF
 	cQy += "	C5_NUM, " + CRLF
+	cQy += "	C6_NFORI, " + CRLF
+	cQy += "	C6_SERIORI, " + CRLF
+	cQy += "	SB1.R_E_C_N_O_, " + CRLF
 	cQy += "	C6_ITEM AS ITEM, " + CRLF
 	cQy += "	C6_DESCONT AS DESCON, " + CRLF
 	cQy += "	C6_QTDVEN AS QUANT, " + CRLF
 	cQy += "	B1_QE AS EMB, " + CRLF
 	cQy += "	C6_UM AS UNIDADE, " + CRLF
 	cQy += "	B1_COD AS CODIGO_FAMA, " + CRLF
+	cQy += "	C6_PRODUTO, " + CRLF
+	cQy += "	C6_TES, " + CRLF
 	cQy += "	B1_DESC AS DESCRICAO, " + CRLF
+	cQy += "	C6_VALDESC, " + CRLF
 	cQy += "	C6_PRCVEN AS VALOR_UNI, " + CRLF
 	cQy += "	C6_VALOR AS VALOR_TOTAL, " + CRLF
 	cQy += "	0.00 AS IPI_PORCENT, " + CRLF
-	cQy += "	0.00 AS IPI_VAL " + CRLF
+	cQy += "	0.00 AS IPI_VAL, " + CRLF
+	cQy += "	C5_FRETE, " + CRLF
+	cQy += "	C5_SEGURO, " + CRLF
+	cQy += "	C5_DESPESA, " + CRLF
+	cQy += "	C5_FRETAUT, " + CRLF
+	cQy += "	C5_DESCONT, " + CRLF
+	cQy += "	C5_PDESCAB " + CRLF
 	cQy += "FROM " + CRLF
 	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
 	cQy += "	INNER JOIN " + CRLF
@@ -179,7 +195,7 @@ user function UFATREL58()
 
 	#IFDEF MOSTRA_QUERY
 		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
-			restArea(cArea)
+			FWRestArea(cArea)
 			return
 		endIf
 	#ENDIF
@@ -234,7 +250,7 @@ user function UFATREL58()
 	EndIf
 	FreeObj(oPrinter)
 	oPrinter := Nil
-	restArea(cArea)
+	FWRestArea(cArea)
 return
 
 static function itensC6(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFields, aData, oPrinterRec)
