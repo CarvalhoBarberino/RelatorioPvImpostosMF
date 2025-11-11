@@ -12,11 +12,11 @@ L_{Y}=\frac{32.2}{100}
 
 400\cdot L_{Y}
 
-comparado com a MIT044:
+comparado com a MIT044 impressa:
 
-L_{X}=\frac{115.1256}{490}
+L_{X}=\frac{44}{176}
 
-L_{Y}=\frac{23.314}{100}
+L_{Y}=L_{X}\cdot0.992329
 
 \frac{44.5}{L_{X}}
 

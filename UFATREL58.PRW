@@ -4,6 +4,7 @@
 
 #DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
 #DEFINE MOSTRA_QUERY
+//#DEFINE MOSTRA_GRADE
 #DEFINE IMP_SPOOL		2
 #DEFINE IMP_PDF			6
 #DEFINE SEM_SETUP		.T.
@@ -327,10 +328,10 @@ user function UFATREL58()
 		aAdd(aImprimirIt, (cAliasC6)->UNIDADE)
 		aAdd(aImprimirIt, Alltrim((cAliasC6)->CODIGO_FAMA))
 		aAdd(aImprimirIt, Alltrim((cAliasC6)->DESCRICAO))
-		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9.999,99")))
-		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99.999,99")))
+		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9,999.99")))
+		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99,999.99")))
 		aAdd(aImprimirIt, Alltrim(Transform(aDadosIt[DADOS_IT_IT_ALIQIPI], "@E 99.99")))
-		aAdd(aImprimirIt, Alltrim(Transform(aDadosIt[DADOS_IT_IT_VALIPI], "@E 9.999,99")))
+		aAdd(aImprimirIt, Alltrim(Transform(aDadosIt[DADOS_IT_IT_VALIPI], "@E 9,999.99")))
 		aAdd(aImprimir, aImprimirIt)
 
 		(cAliasC6)->(dbSkip())
@@ -380,18 +381,39 @@ user function UFATREL58()
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aGroupBy", aGrupoProd, , .F.))
 	#ENDIF
-	aGrupoProd := aSelectByIndex(aGrupoProd, {DADOS_IT_GRUPO_DESCRI, DADOS_IT_C6_VALDESC, DADOS_IT_VALOR_TOTAL})
+	aGrupoProd1 := aSelectByIndex(aGrupoProd, {;
+		DADOS_IT_GRUPO_DESCRI, ;
+		DADOS_IT_C6_VALDESC, ;
+		DADOS_IT_VALOR_TOTAL, ;
+		DADOS_IT_IT_VALIPI, ;
+		DADOS_IT_IT_VALSOL, ;
+		DADOS_IT_VALOR_C_IMPOSTOS, ;
+		DADOS_IT_PESO_TOTAL, ;
+		DADOS_IT_QUANT ;
+		})
 	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aSelectByIndex", aGrupoProd, , .F.))
+		showLog(VarInfo("aGrupoProd1", aGrupoProd1, , .F.))
 	#ENDIF
-	aGrupoProd := aToStr(aGrupoProd, {"", "@E 999,99", "@E 9.999,99"})
-
-	aCampos := {"grupo", "descon", "Valor Total"}
-	aMedidas := {60, 176, 100}
-	aAlinhamento := {PAD_LEFT, PAD_CENTER_H, PAD_RIGHT}
-	itensC6(nRowBase1 + 721, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupoProd, @oPrinter)
-/*
+	aGrupoProd1 := aToStr(aGrupoProd1, {;
+		"", ;
+		"@E 999,999.99", ;
+		"@E 999,999.99", ;
+		"@E 999,999.99", ;
+		"@E 999,999.99", ;
+		"@E 999,999.99", ;
+		"@E 999,999.99", ;
+		"@E 999,999.99", ;
+		})
 	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupoProd1", aGrupoProd1, , .F.))
+	#ENDIF
+
+	aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
+	aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
+	aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+	itensC6(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupoProd, @oPrinter)
+
+	#IFDEF MOSTRA_GRADE
 		oPrinter:Box(500, 500, 600, 600, "-2")
 		oPrinter:Say(600, 600, "600x600", oArial10, 15,,)
 		oPrinter:Box(400, 400, 500, 500, "-2")
@@ -404,9 +426,8 @@ user function UFATREL58()
 		oPrinter:Say(200, 200, "200x200", oArial10, 15,,)
 		oPrinter:Box(700, 100, 730, 300, "-2")
 		oPrinter:SayAlign(700, 100, "TEXTO", oArial10, 200, 30, , PAD_CENTER_H, )
-
 	#ENDIF
-*/
+
 	oPrinter:EndPage()
 	If TESTE_PDF
 		MsgAlert("com TESTE_PDF ", NOME_DO_FONTE)
@@ -567,7 +588,7 @@ static function aToStr(aDados2D, aMascara)
 	for nRow := 1 to len(aDados2D)
 		for nCol := 1 to len(aDados2D[nRow])
 			if valType(aDados2D[nRow, nCol]) == "N"
-				aDados2D[nRow, nCol] := iif(!empty(aMascara[nCol]), Alltrim(Transform(aDados2D[nRow, nCol], aMascara[nCol])), cValToChar(aDados2D[nRow, nCol]))
+				aDados2D[nRow, nCol] := iif(!empty(aMascara[nCol]), Alltrim(Transform(aDados2D[nRow, nCol], aMascara[nCol])), Alltrim(cValToChar(aDados2D[nRow, nCol])))
 			endIf
 		next
 	next
