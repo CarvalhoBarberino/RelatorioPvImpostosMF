@@ -40,6 +40,12 @@
 #DEFINE DADOS_IT_IT_VALSOL			22
 #DEFINE DADOS_IT_VALOR_C_IMPOSTOS	23
 #DEFINE DADOS_IT_PESO_TOTAL			24
+#DEFINE DADOS_IT_GRUPO_COD			25
+#DEFINE DADOS_IT_GRUPO_DESCRI		26
+#DEFINE DADOS_IT_DESCONTOS			27
+#DEFINE DADOS_IT_C5_CONDPAG			28
+#DEFINE DADOS_IT_E4_DESCRI			29
+#DEFINE DADOS_IT_DESCONTOS_UMOLART	30
 
 user function UFATREL58()
 	local oPrinter
@@ -48,11 +54,11 @@ user function UFATREL58()
 	local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
 	local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
 	local cPedido			:= "000009" // "000009"		"000014"
-	local cFilial			:= "01" // 	"01"		"0101"
+	local cUFilial			:= "01" // 	"01"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
-	local aImprimirIt			:= {}
+	local aImprimirIt		:= {}
 	local aCampos			:= {}
 	local aMedidas			:= {}
 	local aAlinhamento		:= {}
@@ -171,6 +177,12 @@ user function UFATREL58()
 	cQy += "	C6_PRCVEN AS VALOR_UNI, " + CRLF
 	cQy += "	C6_VALOR AS VALOR_TOTAL, " + CRLF
 	cQy += "	C5_FRETE " + CRLF
+	cQy += "	B1_GRUPO AS GRUPO_COD, " + CRLF
+	cQy += "	BM_DESC AS GRUPO_DESCRI, " + CRLF
+	cQy += "	'C6_UDCIDP + C6_UDCVEND + C6_UDCGPPD + C6_UDCCLI' AS DESCONTOS, " + CRLF
+	cQy += "	C5_CONDPAG, " + CRLF
+	cQy += "	E4_DESCRI, " + CRLF
+	cQy += "	'SBM_UMOLART' AS DESCONTOS_UMOLART, " + CRLF
 	cQy += "FROM " + CRLF
 	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
 	cQy += "	INNER JOIN " + CRLF
@@ -183,6 +195,16 @@ user function UFATREL58()
 	cQy += "		ON C6_PRODUTO = B1_COD " + CRLF
 	cQy += "		AND B1_FILIAL = '" + FWxFilial("SB1") + "' " + CRLF
 	cQy += "		AND SB1.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	INNER JOIN " + CRLF
+	cQy += "		" + RetSQLName("SBM") + " SBM " + CRLF
+	cQy += "		ON B1_GRUPO = BM_GRUPO " + CRLF
+	cQy += "		AND BM_FILIAL = '' " + CRLF
+	cQy += "		AND SBM.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	INNER JOIN " + CRLF
+	cQy += "		" + RetSQLName("SE4") + " SE4 " + CRLF
+	cQy += "		ON C5_CONDPAG = E4_CODIGO " + CRLF
+	cQy += "		AND E4_FILIAL = '' " + CRLF
+	cQy += "		AND SE4.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
 	cQy += "	AND C5_FILIAL = '" + FWxFilial("SC5") + "' " + CRLF
@@ -287,8 +309,14 @@ user function UFATREL58()
 		aAdd(aDadosIt, MaFisRet(nI, "IT_ALIQIPI"))
 		aAdd(aDadosIt, MaFisRet(nI, "IT_VALIPI"))
 		aAdd(aDadosIt, MaFisRet(nI, "IT_VALSOL"))
-		aAdd(aImpostos[nI], VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
-		aAdd(aImpostos[nI], (cAliasC6)->QUANT * (cAliasC6)->B1_PESO)
+		aAdd(aDadosIt, VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
+		aAdd(aDadosIt, (cAliasC6)->QUANT * (cAliasC6)->B1_PESO)
+		aAdd(aDadosIt, (cAliasC6)->GRUPO_COD)
+		aAdd(aDadosIt, (cAliasC6)->GRUPO_DESCRI)
+		aAdd(aDadosIt, (cAliasC6)->DESCONTOS)
+		aAdd(aDadosIt, (cAliasC6)->C5_CONDPAG)
+		aAdd(aDadosIt, (cAliasC6)->E4_DESCRI)
+		aAdd(aDadosIt, (cAliasC6)->DESCONTOS_UMOLART)
 		aAdd(aDados, aDadosIt)
 
 		aImprimirIt := {}
@@ -310,7 +338,7 @@ user function UFATREL58()
 
 	MaFisEnd()
 
-
+	aGrupoProd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
 
 	#IFDEF MOSTRA_QUERY
 		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
@@ -463,10 +491,11 @@ static function cabC5(oPrinterRec, cAliasC5)
 return
 
 static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
-	Local aGroup2D			:= {} As Array
-	Local cGroupText		:= "" As Character
-	Local nFoundPosition	:= 0 As Numeric
-	Local nDados2DPos		:= 0 As Numeric
+	local aGroup2D			:= {} As Array
+	local cGroupText		:= "" As Character
+	local nFoundPosition	:= 0 As Numeric
+	local nDados2DPos		:= 0 As Numeric
+	local nCol
 
 	For nDados2DPos := 1 To Len(aDados2D)
 		cGroupText := aDados2D[nDados2DPos][nGroupeBy]
@@ -492,3 +521,29 @@ static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 		EndIf
 	Next
 return aGroup2D
+
+user function seleciona()
+	local myArray := aSelectByIndex({{"Joao", "Cajamr", 38}, {"Maria", "Nova esperaca", 34}, {"Antonia", "Santos", 55}, {"Marcio", "itapecerica da serra", 49}}, {3, 1, 2, 3, 2})
+	showLog(VarInfo("Por idade", myArray, , .F.))
+return
+
+static function aSelectByIndex(aOriginal2D, aIndex)
+	local aRet		:= {}
+	local aItem		:= {}
+	local nRow
+	local nCol
+	local nIndex
+
+	for nRow := 1 to len(aOriginal2D)
+		aItem := {}
+		for nIndex := 1 to len(aIndex)
+			for nCol := 1 to len(aOriginal2D[nRow])
+				if aIndex[nIndex] == nCol
+					aAdd(aItem, aOriginal2D[nRow, nCol])
+				endIf
+			next
+		next
+		aAdd(aRet, aItem)
+	next
+
+return aRet
