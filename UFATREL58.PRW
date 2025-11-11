@@ -3,7 +3,7 @@
 #INCLUDE "RPTDef.ch"
 
 #DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
-//#DEFINE MOSTRA_QUERY
+#DEFINE MOSTRA_QUERY
 #DEFINE IMP_SPOOL		2
 #DEFINE IMP_PDF			6
 #DEFINE SEM_SETUP		.T.
@@ -50,11 +50,11 @@
 user function UFATREL58()
 	local oPrinter
 	local cNomeDoArquivo	:= "teste.pdf"
-	local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
-	local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
-	local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
+	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
+	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
+	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
 	local cPedido			:= "000009" // "000009"		"000014"
-	local cUFilial			:= "01" // 	"01"		"0101"
+	//local cUFilial			:= "01" // 	"01"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
@@ -66,10 +66,10 @@ user function UFATREL58()
 	local cArea				:= FWGetArea()
 	local nRowBase1			:= 0
 	local nColBase1			:= 0
-	local nRowBase2			:= 0
-	local nColBase2			:= 0
+	//local nRowBase2			:= 0
+	//local nColBase2			:= 0
 	local nI				:= 0
-	local aImpostos			:= {}
+	//local aImpostos			:= {}
 
 	cPedido := FWInputBox("Digite o pedido:", cPedido)
 
@@ -176,13 +176,13 @@ user function UFATREL58()
 	cQy += "	C6_VALDESC, " + CRLF
 	cQy += "	C6_PRCVEN AS VALOR_UNI, " + CRLF
 	cQy += "	C6_VALOR AS VALOR_TOTAL, " + CRLF
-	cQy += "	C5_FRETE " + CRLF
+	cQy += "	C5_FRETE, " + CRLF
 	cQy += "	B1_GRUPO AS GRUPO_COD, " + CRLF
 	cQy += "	BM_DESC AS GRUPO_DESCRI, " + CRLF
 	cQy += "	'C6_UDCIDP + C6_UDCVEND + C6_UDCGPPD + C6_UDCCLI' AS DESCONTOS, " + CRLF
 	cQy += "	C5_CONDPAG, " + CRLF
 	cQy += "	E4_DESCRI, " + CRLF
-	cQy += "	'SBM_UMOLART' AS DESCONTOS_UMOLART, " + CRLF
+	cQy += "	'SBM_UMOLART' AS DESCONTOS_UMOLART " + CRLF
 	cQy += "FROM " + CRLF
 	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
 	cQy += "	INNER JOIN " + CRLF
@@ -195,12 +195,12 @@ user function UFATREL58()
 	cQy += "		ON C6_PRODUTO = B1_COD " + CRLF
 	cQy += "		AND B1_FILIAL = '" + FWxFilial("SB1") + "' " + CRLF
 	cQy += "		AND SB1.D_E_L_E_T_ = '' " + CRLF
-	cQy += "	INNER JOIN " + CRLF
+	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SBM") + " SBM " + CRLF
 	cQy += "		ON B1_GRUPO = BM_GRUPO " + CRLF
 	cQy += "		AND BM_FILIAL = '' " + CRLF
 	cQy += "		AND SBM.D_E_L_E_T_ = '' " + CRLF
-	cQy += "	INNER JOIN " + CRLF
+	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SE4") + " SE4 " + CRLF
 	cQy += "		ON C5_CONDPAG = E4_CODIGO " + CRLF
 	cQy += "		AND E4_FILIAL = '' " + CRLF
@@ -329,16 +329,14 @@ user function UFATREL58()
 		aAdd(aImprimirIt, Alltrim((cAliasC6)->DESCRICAO))
 		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9.999,99")))
 		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99.999,99")))
-		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->IPI_PORCENT, "@E 99.99")))
-		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->IPI_VAL, "@E 9.999,99")))
+		aAdd(aImprimirIt, Alltrim(Transform(aDadosIt[DADOS_IT_IT_ALIQIPI], "@E 99.99")))
+		aAdd(aImprimirIt, Alltrim(Transform(aDadosIt[DADOS_IT_IT_VALIPI], "@E 9.999,99")))
 		aAdd(aImprimir, aImprimirIt)
 
 		(cAliasC6)->(dbSkip())
 	endDo
 
 	MaFisEnd()
-
-	aGrupoProd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
 
 	#IFDEF MOSTRA_QUERY
 		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
@@ -375,6 +373,25 @@ user function UFATREL58()
 	itensC6(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aImprimir, @oPrinter)
 
 	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aDados", aDados, , .F.))
+	#ENDIF
+
+	aGrupoProd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGroupBy", aGrupoProd, , .F.))
+	#ENDIF
+	aGrupoProd := aSelectByIndex(aGrupoProd, {DADOS_IT_GRUPO_DESCRI, DADOS_IT_C6_VALDESC, DADOS_IT_VALOR_TOTAL})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aSelectByIndex", aGrupoProd, , .F.))
+	#ENDIF
+	aGrupoProd := aToStr(aGrupoProd, {"", "@E 999,99", "@E 9.999,99"})
+
+	aCampos := {"grupo", "descon", "Valor Total"}
+	aMedidas := {60, 176, 100}
+	aAlinhamento := {PAD_LEFT, PAD_CENTER_H, PAD_RIGHT}
+	itensC6(nRowBase1 + 721, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupoProd, @oPrinter)
+/*
+	#IFDEF MOSTRA_QUERY
 		oPrinter:Box(500, 500, 600, 600, "-2")
 		oPrinter:Say(600, 600, "600x600", oArial10, 15,,)
 		oPrinter:Box(400, 400, 500, 500, "-2")
@@ -389,7 +406,7 @@ user function UFATREL58()
 		oPrinter:SayAlign(700, 100, "TEXTO", oArial10, 200, 30, , PAD_CENTER_H, )
 
 	#ENDIF
-
+*/
 	oPrinter:EndPage()
 	If TESTE_PDF
 		MsgAlert("com TESTE_PDF ", NOME_DO_FONTE)
@@ -522,11 +539,6 @@ static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 	Next
 return aGroup2D
 
-user function seleciona()
-	local myArray := aSelectByIndex({{"Joao", "Cajamr", 38}, {"Maria", "Nova esperaca", 34}, {"Antonia", "Santos", 55}, {"Marcio", "itapecerica da serra", 49}}, {3, 1, 2, 3, 2})
-	showLog(VarInfo("Por idade", myArray, , .F.))
-return
-
 static function aSelectByIndex(aOriginal2D, aIndex)
 	local aRet		:= {}
 	local aItem		:= {}
@@ -547,3 +559,16 @@ static function aSelectByIndex(aOriginal2D, aIndex)
 	next
 
 return aRet
+
+static function aToStr(aDados2D, aMascara)
+	local nRow
+	local nCol
+
+	for nRow := 1 to len(aDados2D)
+		for nCol := 1 to len(aDados2D[nRow])
+			if valType(aDados2D[nRow, nCol]) == "N"
+				aDados2D[nRow, nCol] := iif(!empty(aMascara[nCol]), Alltrim(Transform(aDados2D[nRow, nCol], aMascara[nCol])), cValToChar(aDados2D[nRow, nCol]))
+			endIf
+		next
+	next
+return aDados2D
