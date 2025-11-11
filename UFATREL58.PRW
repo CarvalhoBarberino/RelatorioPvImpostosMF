@@ -379,11 +379,11 @@ user function UFATREL58()
 		showLog(VarInfo("aDados", aDados, , .F.))
 	#ENDIF
 
-	aGrupoProd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
+	aGrupPrd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
 	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGroupBy", aGrupoProd, , .F.))
+		showLog(VarInfo("aGroupBy", aGrupPrd, , .F.))
 	#ENDIF
-	aGrupoProd1 := aSelectByIndex(aGrupoProd, {;
+	aGrupPrd1 := aSelByIndx(aGrupPrd, {;
 		DADOS_IT_GRUPO_DESCRI, ;
 		DADOS_IT_C6_VALDESC, ;
 		DADOS_IT_VALOR_TOTAL, ;
@@ -394,9 +394,9 @@ user function UFATREL58()
 		DADOS_IT_QUANT ;
 		})
 	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupoProd1", aGrupoProd1, , .F.))
+		showLog(VarInfo("aGrupPrd1", aGrupPrd1, , .F.))
 	#ENDIF
-	aGrupoProd1 := aToStr(aGrupoProd1, {;
+	aGrupPrd1 := aToStr(aGrupPrd1, {;
 		"", ;
 		"@E 999,999.99", ;
 		"@E 999,999.99", ;
@@ -407,13 +407,27 @@ user function UFATREL58()
 		"@E 999,999.99", ;
 		})
 	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupoProd1", aGrupoProd1, , .F.))
+		showLog(VarInfo("aGrupPrd1", aGrupPrd1, , .F.))
 	#ENDIF
-
 	aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
 	aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
 	aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	itensC6(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupoProd, @oPrinter)
+	itensC6(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd1, @oPrinter)
+
+	aGrupPrd2 := aSelByIndx(aGrupPrd, {;
+		DADOS_IT_GRUPO_DESCRI, ;
+		DADOS_IT_E4_DESCRI})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrd2", aGrupPrd2, , .F.))
+	#ENDIF
+	aGrupPrd2 := aToStr(aGrupPrd2, {"", ""})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrd2", aGrupPrd2, , .F.))
+	#ENDIF
+	aCampos := {"Grupo", "Cond. Pagamento"}
+	aMedidas := {154, 70}
+	aAlinhamento := {PAD_LEFT, PAD_RIGHT}
+	itensC6(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd2, @oPrinter)
 
 	#IFDEF MOSTRA_GRADE
 		oPrinter:Box(500, 500, 600, 600, "-2")
@@ -478,7 +492,7 @@ static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 
 	local nRowBase1		:= 76
 	local nColBase1		:= 4
-	local nLarguraCab	:= 586
+	local nWidthCab		:= 586
 	local nDeltaY1		:= 19.5
 	local nDeltaY2		:= 17
 	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
@@ -488,12 +502,12 @@ static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 	local cPagina		:= "Pagina " + cValToChar(nPagina) + "/" + cValToChar(nPaginaTot)
 	local cStamp		:= "Impresso em "+ dToC(Date()) + " - " + Time()
 
-	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60, nColBase1 + nLarguraCab - 4, "-2")
-	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1, cPagina, oArial08, nLarguraCab, 20, , PAD_CENTER_H, 1)
-	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1 + round(nLarguraCab / 2, 0), cStamp, oArial08, round(nLarguraCab / 2, 0), 20, , PAD_RIGHT, 2)
-	oPrinterRec:SayAlign(nRowBase1 + 0, nColBase1, "M O L A S   F A M A", oArial18b, nLarguraCab, 30, , PAD_CENTER_H, 2)
-	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1, "FAMA DO BRASIL IND DE MOLAS E AUTO PECAS LTDA", oArial15, nLarguraCab, nDeltaY1, , PAD_CENTER_H, 2)
-	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1 + nDeltaY2, nColBase1, "ROD. BR 376 KM 232, S/N SAIDA P/ MARINGA - CAIXA POSTAL 917, APUCARANA/PR - Fone: (43) 3420-9000 Fax: (43) 3420-9001", oArial11, nLarguraCab, nDeltaY2, , PAD_CENTER_H, 2)
+	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60, nColBase1 + nWidthCab - 4, "-2")
+	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1, cPagina, oArial08, nWidthCab, 20, , PAD_CENTER_H, 1)
+	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1 + round(nWidthCab / 2, 0), cStamp, oArial08, round(nWidthCab / 2, 0), 20, , PAD_RIGHT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 0, nColBase1, "M O L A S   F A M A", oArial18b, nWidthCab, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1, "FAMA DO BRASIL IND DE MOLAS E AUTO PECAS LTDA", oArial15, nWidthCab, nDeltaY1, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1 + nDeltaY2, nColBase1, "ROD. BR 376 KM 232, S/N SAIDA P/ MARINGA - CAIXA POSTAL 917, APUCARANA/PR - Fone: (43) 3420-9000 Fax: (43) 3420-9001", oArial11, nWidthCab, nDeltaY2, , PAD_CENTER_H, 2)
 
 return
 
@@ -501,13 +515,13 @@ static function cabC5(oPrinterRec, cAliasC5)
 
 	local nRowBase1		:= 132
 	local nColBase1		:= 0
-	local nLarguraCab	:= 586
+	local nWidthCab		:= 586
 	local nDeltaY1		:= 10
 	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 
-	oPrinterRec:Box(nRowBase1 + 00, nColBase1 + 4, nRowBase1 + 51, nColBase1 + nLarguraCab, "-2")
+	oPrinterRec:Box(nRowBase1 + 00, nColBase1 + 4, nRowBase1 + 51, nColBase1 + nWidthCab, "-2")
 	oPrinterRec:Say(nRowBase1 + nDeltaY1, nColBase1 + 8, "Cliente: ", oArial12b, 15,,)
 	oPrinterRec:Say(nRowBase1 + nDeltaY1, nColBase1 + 8 + 53, (cAliasC5)->CLI_NOME, oArial12, 15,,)
 	oPrinterRec:Say(nRowBase1 + 2 * nDeltaY1, nColBase1 + 8, "Endereço", oArial12b, 15,,)
@@ -526,55 +540,56 @@ static function cabC5(oPrinterRec, cAliasC5)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 249, (cAliasC5)->CLI_IE, oArial12, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 357, "E-mail: ", oArial12b, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 392, (cAliasC5)->CLI_EMAIL, oArial12, 15,,)
-	oPrinterRec:SayAlign(nRowBase1 + 4 * nDeltaY1 + 17, nColBase1, "Pedido", oArial18b, nLarguraCab, 16, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 4 * nDeltaY1 + 17, nColBase1, "Pedido", oArial18b, nWidthCab, 16, , PAD_CENTER_H, 2)
 
 return
 
 static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 	local aGroup2D			:= {} As Array
 	local cGroupText		:= "" As Character
-	local nFoundPosition	:= 0 As Numeric
-	local nDados2DPos		:= 0 As Numeric
+	local nFoundPos			:= 0 As Numeric
+	local nDadosPos			:= 0 As Numeric
 	local nCol
+	local aQuant
 
-	For nDados2DPos := 1 To Len(aDados2D)
-		cGroupText := aDados2D[nDados2DPos][nGroupeBy]
-		aQuantity := {}
+	For nDadosPos := 1 To Len(aDados2D)
+		cGroupText := aDados2D[nDadosPos][nGroupeBy]
+		aQuant := {}
 
-		for nCol := 1 to len(aDados2D[nDados2DPos])
-			aAdd(aQuantity, aDados2D[nDados2DPos][nCol])
+		for nCol := 1 to len(aDados2D[nDadosPos])
+			aAdd(aQuant, aDados2D[nDadosPos][nCol])
 		next
 
-		nFoundPosition := 0
+		nFoundPos := 0
 		If Len(aGroup2D) > 0
-			nFoundPosition := aScan(aGroup2D, {|y| y[nGroupeBy] == cGroupText})
+			nFoundPos := aScan(aGroup2D, {|y| y[nGroupeBy] == cGroupText})
 		EndIf
 
-		If nFoundPosition == 0
-			aAdd(aGroup2D, aQuantity)
+		If nFoundPos == 0
+			aAdd(aGroup2D, aQuant)
 		Else
-			for nCol := 1 to len(aDados2D[nDados2DPos])
-				if nCol != nGroupeBy .and. valType(aDados2D[nDados2DPos][nCol]) == "N"
-					aGroup2D[nFoundPosition][nCol] += aQuantity[nCol]
+			for nCol := 1 to len(aDados2D[nDadosPos])
+				if nCol != nGroupeBy .and. valType(aDados2D[nDadosPos][nCol]) == "N"
+					aGroup2D[nFoundPos][nCol] += aQuant[nCol]
 				endIf
 			next
 		EndIf
 	Next
 return aGroup2D
 
-static function aSelectByIndex(aOriginal2D, aIndex)
+static function aSelByIndx(aOrig2D, aIndex)
 	local aRet		:= {}
 	local aItem		:= {}
 	local nRow
 	local nCol
 	local nIndex
 
-	for nRow := 1 to len(aOriginal2D)
+	for nRow := 1 to len(aOrig2D)
 		aItem := {}
 		for nIndex := 1 to len(aIndex)
-			for nCol := 1 to len(aOriginal2D[nRow])
+			for nCol := 1 to len(aOrig2D[nRow])
 				if aIndex[nIndex] == nCol
-					aAdd(aItem, aOriginal2D[nRow, nCol])
+					aAdd(aItem, aOrig2D[nRow, nCol])
 				endIf
 			next
 		next
@@ -586,12 +601,13 @@ return aRet
 static function aToStr(aDados2D, aMascara)
 	local nRow
 	local nCol
+	local aRet := aClone(aDados2D)
 
 	for nRow := 1 to len(aDados2D)
 		for nCol := 1 to len(aDados2D[nRow])
 			if valType(aDados2D[nRow, nCol]) == "N"
-				aDados2D[nRow, nCol] := iif(!empty(aMascara[nCol]), Alltrim(Transform(aDados2D[nRow, nCol], aMascara[nCol])), Alltrim(cValToChar(aDados2D[nRow, nCol])))
+				aRet[nRow, nCol] := iif(!empty(aMascara[nCol]), Alltrim(Transform(aDados2D[nRow, nCol], aMascara[nCol])), Alltrim(cValToChar(aDados2D[nRow, nCol])))
 			endIf
 		next
 	next
-return aDados2D
+return aRet
