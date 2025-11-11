@@ -54,8 +54,8 @@ user function UFATREL58()
 	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
 	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
 	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
-	local cPedido			:= "000009" // "000009"		"000014"
-	//local cUFilial			:= "01" // 	"01"		"0101"
+	local cPedido			:= "000009" // "000009"	"000014"	"000055"	"000031"	"000015"
+	//local cUFilial			:= "01" // 	"01"	"0101"		"0101"		"0101"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
@@ -237,7 +237,7 @@ user function UFATREL58()
 		/*Tipo de complemento*/, ;
 		/*Permite Incluir Impostos no Rodape .T./.F.*/, ;
 		"SB1" /*Alias do Cadastro de Produtos - ("SBI" P/ Front Loja)*/, ;
-		"MATA461" /*Nome da rotina que esta utilizando a funcao*/;
+		"MATA410" /*Nome da rotina que esta utilizando a funcao*/;
 		)
 
 	nI := 0
@@ -283,10 +283,12 @@ user function UFATREL58()
 			)
 	EndIf
 
+	nI := 0
 	aImprimir := {}
 	aDados := {}
 	(cAliasC6)->(dbGoTop())
 	while !(cAliasC6)->(eOF())
+		nI++
 		aDadosIt := {}
 		aAdd(aDadosIt, (cAliasC6)->C5_NUM)
 		aAdd(aDadosIt, (cAliasC6)->C6_NFORI)
