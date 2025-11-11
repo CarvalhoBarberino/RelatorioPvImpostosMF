@@ -15,9 +15,31 @@
 #DEFINE PAD_CENTER_V	0
 #DEFINE PAD_TOP			1
 #DEFINE PAD_BOTTOM		2
-#DEFINE IPI_VAL			1
-#DEFINE IPI_PORCENT		2
-#DEFINE VALSOL			3
+
+#DEFINE DADOS_IT_C5_NUM				1
+#DEFINE DADOS_IT_C6_NFORI			2
+#DEFINE DADOS_IT_C6_SERIORI			3
+#DEFINE DADOS_IT_SB1_REC			4
+#DEFINE DADOS_IT_ITEM				5
+#DEFINE DADOS_IT_DESCON				6
+#DEFINE DADOS_IT_QUANT				7
+#DEFINE DADOS_IT_EMB				8
+#DEFINE DADOS_IT_UNIDADE			9
+#DEFINE DADOS_IT_CODIGO_FAMA		10
+#DEFINE DADOS_IT_B1_PESO			11
+#DEFINE DADOS_IT_C6_PRODUTO			12
+#DEFINE DADOS_IT_C6_TES				13
+#DEFINE DADOS_IT_DESCRICAO			14
+#DEFINE DADOS_IT_B1_GRUPO			15
+#DEFINE DADOS_IT_C6_VALDESC			16
+#DEFINE DADOS_IT_VALOR_UNI			17
+#DEFINE DADOS_IT_VALOR_TOTAL		18
+#DEFINE DADOS_IT_C5_FRETE			19
+#DEFINE DADOS_IT_IT_ALIQIPI			20
+#DEFINE DADOS_IT_IT_VALIPI			21
+#DEFINE DADOS_IT_IT_VALSOL			22
+#DEFINE DADOS_IT_VALOR_C_IMPOSTOS	23
+#DEFINE DADOS_IT_PESO_TOTAL			24
 
 user function UFATREL58()
 	local oPrinter
@@ -30,11 +52,11 @@ user function UFATREL58()
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
-	local aDadosIt			:= {}
+	local aImprimirIt			:= {}
 	local aCampos			:= {}
 	local aMedidas			:= {}
 	local aAlinhamento		:= {}
-	local aDados			:= {}
+	local aImprimir			:= {}
 	local cArea				:= FWGetArea()
 	local nRowBase1			:= 0
 	local nColBase1			:= 0
@@ -238,25 +260,57 @@ user function UFATREL58()
 			)
 	EndIf
 
-	nI := 0
+	aImprimir := {}
+	aDados := {}
 	(cAliasC6)->(dbGoTop())
-	aImpostos := {}
 	while !(cAliasC6)->(eOF())
-		nI++
-		aAdd(aImpostos, {})
-		aAdd(aImpostos[nI], grupo)
-		aAdd(aImpostos[nI], descontos)
-		aAdd(aImpostos[nI], valorliquido)
-		aAdd(aImpostos[nI], MaFisRet(nI, "IT_ALIQIPI"))
-		aAdd(aImpostos[nI], MaFisRet(nI, "IT_VALIPI"))
-		aAdd(aImpostos[nI], MaFisRet(nI, "IT_VALSOL"))
-		aAdd(aImpostos[nI], totalcomimpostos)
-		aAdd(aImpostos[nI], pwsoliquido)
-		aAdd(aImpostos[nI], quantidade)
+		aDadosIt := {}
+		aAdd(aDadosIt, (cAliasC6)->C5_NUM)
+		aAdd(aDadosIt, (cAliasC6)->C6_NFORI)
+		aAdd(aDadosIt, (cAliasC6)->C6_SERIORI)
+		aAdd(aDadosIt, (cAliasC6)->SB1_REC)
+		aAdd(aDadosIt, (cAliasC6)->ITEM)
+		aAdd(aDadosIt, (cAliasC6)->DESCON)
+		aAdd(aDadosIt, (cAliasC6)->QUANT)
+		aAdd(aDadosIt, (cAliasC6)->EMB)
+		aAdd(aDadosIt, (cAliasC6)->UNIDADE)
+		aAdd(aDadosIt, (cAliasC6)->CODIGO_FAMA)
+		aAdd(aDadosIt, (cAliasC6)->B1_PESO)
+		aAdd(aDadosIt, (cAliasC6)->C6_PRODUTO)
+		aAdd(aDadosIt, (cAliasC6)->C6_TES)
+		aAdd(aDadosIt, (cAliasC6)->DESCRICAO)
+		aAdd(aDadosIt, (cAliasC6)->B1_GRUPO)
+		aAdd(aDadosIt, (cAliasC6)->C6_VALDESC)
+		aAdd(aDadosIt, (cAliasC6)->VALOR_UNI)
+		aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL)
+		aAdd(aDadosIt, (cAliasC6)->C5_FRETE)
+		aAdd(aDadosIt, MaFisRet(nI, "IT_ALIQIPI"))
+		aAdd(aDadosIt, MaFisRet(nI, "IT_VALIPI"))
+		aAdd(aDadosIt, MaFisRet(nI, "IT_VALSOL"))
+		aAdd(aImpostos[nI], VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
+		aAdd(aImpostos[nI], (cAliasC6)->QUANT * (cAliasC6)->B1_PESO)
+		aAdd(aDados, aDadosIt)
+
+		aImprimirIt := {}
+		aAdd(aImprimirIt, (cAliasC6)->ITEM)
+		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
+		aAdd(aImprimirIt, cValToChar((cAliasC6)->QUANT))
+		aAdd(aImprimirIt, cValToChar((cAliasC6)->EMB))
+		aAdd(aImprimirIt, (cAliasC6)->UNIDADE)
+		aAdd(aImprimirIt, Alltrim((cAliasC6)->CODIGO_FAMA))
+		aAdd(aImprimirIt, Alltrim((cAliasC6)->DESCRICAO))
+		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9.999,99")))
+		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99.999,99")))
+		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->IPI_PORCENT, "@E 99.99")))
+		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->IPI_VAL, "@E 9.999,99")))
+		aAdd(aImprimir, aImprimirIt)
+
 		(cAliasC6)->(dbSkip())
-		showLog("IPI_VAL: " + cValToChar((cAliasC6)->IPI_VAL) + CRLF + "IPI_PORCENT: " + cValToChar((cAliasC6)->IPI_PORCENT) + CRLF + "VALSOL: " + cValToChar((cAliasC6)->VALSOL))
 	endDo
+
 	MaFisEnd()
+
+
 
 	#IFDEF MOSTRA_QUERY
 		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
@@ -287,29 +341,10 @@ user function UFATREL58()
 	cabFama(@oPrinter, 1 /*nPaginaAtual*/, 2 /*nPaginaTotal*/)
 	cabC5(@oPrinter, cAliasC5)
 
-	aDados := {}
-	(cAliasC6)->(dbGoTop())
-	while !(cAliasC6)->(eOF())
-		aDadosIt := {}
-		aAdd(aDadosIt, (cAliasC6)->ITEM)
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
-		aAdd(aDadosIt, cValToChar((cAliasC6)->QUANT))
-		aAdd(aDadosIt, cValToChar((cAliasC6)->EMB))
-		aAdd(aDadosIt, (cAliasC6)->UNIDADE)
-		aAdd(aDadosIt, Alltrim((cAliasC6)->CODIGO_FAMA))
-		aAdd(aDadosIt, Alltrim((cAliasC6)->DESCRICAO))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9.999,99")))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99.999,99")))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_PORCENT, "@E 99.99")))
-		aAdd(aDadosIt, Alltrim(Transform((cAliasC6)->IPI_VAL, "@E 9.999,99")))
-		aAdd(aDados, aDadosIt)
-		(cAliasC6)->(dbSkip())
-	endDo
-
 	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
 	aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
 	aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	itensC6(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aDados, @oPrinter)
+	itensC6(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aImprimir, @oPrinter)
 
 	#IFDEF MOSTRA_QUERY
 		oPrinter:Box(500, 500, 600, 600, "-2")
@@ -427,4 +462,33 @@ static function cabC5(oPrinterRec, cAliasC5)
 
 return
 
+static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
+	Local aGroup2D			:= {} As Array
+	Local cGroupText		:= "" As Character
+	Local nFoundPosition	:= 0 As Numeric
+	Local nDados2DPos		:= 0 As Numeric
 
+	For nDados2DPos := 1 To Len(aDados2D)
+		cGroupText := aDados2D[nDados2DPos][nGroupeBy]
+		aQuantity := {}
+
+		for nCol := 1 to len(aDados2D[nDados2DPos])
+			aAdd(aQuantity, aDados2D[nDados2DPos][nCol])
+		next
+
+		nFoundPosition := 0
+		If Len(aGroup2D) > 0
+			nFoundPosition := aScan(aGroup2D, {|y| y[nGroupeBy] == cGroupText})
+		EndIf
+
+		If nFoundPosition == 0
+			aAdd(aGroup2D, aQuantity)
+		Else
+			for nCol := 1 to len(aDados2D[nDados2DPos])
+				if nCol != nGroupeBy .and. valType(aDados2D[nDados2DPos][nCol]) == "N"
+					aGroup2D[nFoundPosition][nCol] += aQuantity[nCol]
+				endIf
+			next
+		EndIf
+	Next
+return aGroup2D
