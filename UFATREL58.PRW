@@ -3,7 +3,7 @@
 #INCLUDE "RPTDef.ch"
 
 #DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
-#DEFINE MOSTRA_QUERY
+//#DEFINE MOSTRA_QUERY
 //#DEFINE MOSTRA_GRADE
 #DEFINE IMP_SPOOL		2
 #DEFINE IMP_PDF			6
@@ -54,11 +54,12 @@ user function UFATREL58()
 	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
 	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
 	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
-	local cPedido			:= "000009" // "000009"	"000014"	"000055"	"000031"	"000015"
-	//local cUFilial			:= "01" // 	"01"	"0101"		"0101"		"0101"		"0101"
+	local cPedido			:= "000057" //	"000009"	"000014"	"000055"	"000031"	"000015"	"000057"
+	//local cUFilial			:= "01" //	"01"		"0101"		"0101"		"0101"		"0101"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
+	local cAliasC9			:= "REL58C9"
 	local aImprimirIt		:= {}
 	local aCampos			:= {}
 	local aMedidas			:= {}
@@ -71,6 +72,13 @@ user function UFATREL58()
 	//local nColBase2			:= 0
 	local nI				:= 0
 	//local aImpostos			:= {}
+	local aDados
+	local aDadosIt
+	local aGrupPrd
+	local aGrupPrd1
+	local aGrupPrd2
+	local aDupl
+
 
 	cPedido := FWInputBox("Digite o pedido:", cPedido)
 
@@ -101,7 +109,7 @@ user function UFATREL58()
 	cQy += "				THEN C5_SUGENT " + CRLF
 	cQy += "				ELSE C6_ENTREG " + CRLF
 	cQy += "			END " + CRLF
-	cQy += "	END AS DATA_ENTREGA, " + CRLF
+	cQy += "	END AS DT_ENTREG, " + CRLF
 	cQy += "	CASE " + CRLF
 	cQy += "		WHEN C5_FECENT <> '' " + CRLF
 	cQy += "		THEN 'C5_FECENT' " + CRLF
@@ -111,7 +119,7 @@ user function UFATREL58()
 	cQy += "				THEN 'C5_SUGENT' " + CRLF
 	cQy += "				ELSE 'C6_ENTREG' " + CRLF
 	cQy += "			END " + CRLF
-	cQy += "	END AS DATA_ENTREGA_ORI, " + CRLF
+	cQy += "	END AS DT_ENTREGO, " + CRLF
 	cQy += "	A3_COD + ' - ' + A3_NOME AS REPRESENTANTE, " + CRLF
 	cQy += "	C5_TPFRETE, " + CRLF
 	cQy += "	C5_FRETE, " + CRLF
@@ -199,12 +207,12 @@ user function UFATREL58()
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SBM") + " SBM " + CRLF
 	cQy += "		ON B1_GRUPO = BM_GRUPO " + CRLF
-	cQy += "		AND BM_FILIAL = '' " + CRLF
+	cQy += "		AND BM_FILIAL = '" + FWxFilial("SBM") + "' " + CRLF
 	cQy += "		AND SBM.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SE4") + " SE4 " + CRLF
 	cQy += "		ON C5_CONDPAG = E4_CODIGO " + CRLF
-	cQy += "		AND E4_FILIAL = '' " + CRLF
+	cQy += "		AND E4_FILIAL = '" + FWxFilial("SE4") + "' " + CRLF
 	cQy += "		AND SE4.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
@@ -225,6 +233,50 @@ user function UFATREL58()
 		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
 		FWRestArea(cArea)
 		return
+	endIf
+
+	cQy := "SELECT " + CRLF
+	cQy += "	C5_NUM AS PEDIDO, " + CRLF
+	cQy += "	C6_ITEM, " + CRLF
+	cQy += "	C9_DATALIB, " + CRLF
+	cQy += "	C5_EMISSAO AS EMISSAO " + CRLF
+	cQy += "FROM " + CRLF
+	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
+	cQy += "	INNER JOIN " + CRLF
+	cQy += "		" + RetSQLName("SA1") + " SA1 " + CRLF
+	cQy += "		ON C5_CLIENTE = A1_COD " + CRLF
+	cQy += "		AND C5_LOJACLI = A1_LOJA " + CRLF
+	cQy += "		AND A1_FILIAL = '" + FWxFilial("SA1") + "' " + CRLF
+	cQy += "		AND SA1.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	INNER JOIN " + CRLF
+	cQy += "		" + RetSQLName("SC6") + " SC6 " + CRLF
+	cQy += "		ON C5_NUM = C6_NUM " + CRLF
+	cQy += "		AND C6_FILIAL = '" + FWxFilial("SC6") + "' " + CRLF
+	cQy += "		AND SC6.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	INNER JOIN " + CRLF
+	cQy += "		" + RetSQLName("SC9") + " SC9 " + CRLF
+	cQy += "		ON C6_NUM = C9_PEDIDO " + CRLF
+	cQy += "		AND C6_PRODUTO = C9_PRODUTO " + CRLF
+	cQy += "		AND C6_ITEM = C9_ITEM " + CRLF
+	cQy += "		AND C9_FILIAL = '" + FWxFilial("SC9") + "' " + CRLF
+	cQy += "		AND SC9.D_E_L_E_T_ = '' " + CRLF
+	cQy += "WHERE " + CRLF
+	cQy += "	C5_NUM = '" + FWxFilial("SC5") + "' " + CRLF
+	cQy += "	AND C5_FILIAL = '0101' " + CRLF
+	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
+	cQy += "ORDER BY " + CRLF
+	cQy += "	C5_NUM, C9_DATALIB DESC " + CRLF
+	#IFDEF MOSTRA_QUERY
+		showLog(cQy)
+	#ENDIF
+	if select(cAliasC9) > 0
+		dbSelectArea(cAliasC9)
+		(cAliasC9)->(dbCloseArea())
+	ENDIF
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC9, .F., .T.)
+	dbSelectArea(cAliasC9)
+	if (cAliasC9)->(eOF())
+		MsgAlert("Não existem datas de liberação para este pedido", NOME_DO_FONTE)
 	endIf
 
 	MaFisIni(;
@@ -312,7 +364,7 @@ user function UFATREL58()
 		aAdd(aDadosIt, MaFisRet(nI, "IT_ALIQIPI"))
 		aAdd(aDadosIt, MaFisRet(nI, "IT_VALIPI"))
 		aAdd(aDadosIt, MaFisRet(nI, "IT_VALSOL"))
-		aAdd(aDadosIt, VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
+		aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
 		aAdd(aDadosIt, (cAliasC6)->QUANT * (cAliasC6)->B1_PESO)
 		aAdd(aDadosIt, (cAliasC6)->GRUPO_COD)
 		aAdd(aDadosIt, (cAliasC6)->GRUPO_DESCRI)
@@ -396,6 +448,15 @@ user function UFATREL58()
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aGrupPrd1", aGrupPrd1, , .F.))
 	#ENDIF
+
+	(cAliasC9)->(dbGoTop())
+	aDupl := Condicao(nSomaCol(aGrupPrd1, 6), (cAliasC5)->CONDICAO_PAG, , sToD(/*(cAliasC5)->DT_ENTREG*/(cAliasC9)->C9_DATALIB))
+	aDupl := aEnumera(aDupl, 0)
+	aDupl := aImparPar(aClone(aDupl))
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aDupl", aDupl, , .F.))
+	#ENDIF
+
 	aGrupPrd1 := aToStr(aGrupPrd1, {;
 		"", ;
 		"@E 999,999.99", ;
@@ -429,6 +490,12 @@ user function UFATREL58()
 	aAlinhamento := {PAD_LEFT, PAD_RIGHT}
 	itensC6(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd2, @oPrinter)
 
+	aCampos := {"Nº", "Vencimento", "Valor"}
+	aMedidas := {20, 80, 38}
+	aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+	itensC6(nRowBase1 + 584, nColBase1 + 238, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[1], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+	itensC6(nRowBase1 + 584, nColBase1 + 376, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[2], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+
 	#IFDEF MOSTRA_GRADE
 		oPrinter:Box(500, 500, 600, 600, "-2")
 		oPrinter:Say(600, 600, "600x600", oArial10, 15,,)
@@ -456,6 +523,8 @@ user function UFATREL58()
 	oPrinter := Nil
 	FWRestArea(cArea)
 return
+
+// lib
 
 static function itensC6(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFields, aData, oPrinterRec)
 	local nRowCount		:= 1
@@ -607,7 +676,47 @@ static function aToStr(aDados2D, aMascara)
 		for nCol := 1 to len(aDados2D[nRow])
 			if valType(aDados2D[nRow, nCol]) == "N"
 				aRet[nRow, nCol] := iif(!empty(aMascara[nCol]), Alltrim(Transform(aDados2D[nRow, nCol], aMascara[nCol])), Alltrim(cValToChar(aDados2D[nRow, nCol])))
+			elseIf valType(aDados2D[nRow, nCol]) == "D"
+				aRet[nRow, nCol] := allTrim(dToC(aDados2D[nRow, nCol]))
 			endIf
 		next
 	next
 return aRet
+
+static function nSomaCol(aDados2D, nCampo)
+	local nRow		:= 0
+	local nSoma		:= 0
+
+	for nRow := 1 to len(aDados2D)
+		if valType(aDados2D[nRow, nCampo]) == "N"
+			nSoma += aDados2D[nRow, nCampo]
+		endIf
+	next
+return nSoma
+
+static function aImparPar(aOri)
+	local nRow			:= 0
+	local aImpar		:= {}
+	local aPar			:= {}
+	for nRow := 1 to len(aOri)
+		if nRow % 2 == 1
+			aAdd(aImpar, aOri[nRow])
+		else
+			aAdd(aPar, aOri[nRow])
+		endIf
+	next
+return {aImpar, aPar}
+
+static function aEnumera(aOri, nShift)
+	local aRet		:= {}
+	local nRow		:= 0
+	local nCol		:= 0
+
+	for nRow := 1 to len(aOri)
+		aAdd(aRet, {nRow + nShift})
+		for nCol := 1 to len(aOri[nRow])
+			aAdd(aRet[nRow], aOri[nRow, nCol])
+		next
+	next
+return aRet
+

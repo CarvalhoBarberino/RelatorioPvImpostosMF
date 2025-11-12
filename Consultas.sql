@@ -27,7 +27,7 @@ SELECT
 				THEN C5_SUGENT 
 				ELSE C6_ENTREG 
 			END 
-	END AS DATA_ENTREGA, -- Este dado não foi encontrado verificar se existe no cliente
+	END AS DT_ENTREG, -- Este dado não foi encontrado verificar se existe no cliente
 	CASE 
 		WHEN C5_FECENT <> '' 
 		THEN 'C5_FECENT' 
@@ -37,7 +37,7 @@ SELECT
 				THEN 'C5_SUGENT' 
 				ELSE 'C6_ENTREG' 
 			END 
-	END AS DATA_ENTREGA_ORI, 
+	END AS DT_ENTREGO, 
 	A3_COD + ' - ' + A3_NOME AS REPRESENTANTE, 
 	C5_TPFRETE, 
 	C5_FRETE, 
@@ -126,6 +126,40 @@ WHERE
 	AND SC5.D_E_L_E_T_ = '' 
 ORDER BY 
 	C5_NUM, C6_ITEM 
+
+-- Quadro com dados do cliente com impostos cAliasC9
+
+SELECT 
+	C5_NUM AS PEDIDO, 
+	C6_ITEM, 
+	C9_DATALIB, 
+	C5_EMISSAO AS EMISSAO 
+FROM 
+	SC5010 SC5 
+	INNER JOIN 
+		SA1010 SA1 
+		ON C5_CLIENTE = A1_COD 
+		AND C5_LOJACLI = A1_LOJA 
+		AND A1_FILIAL = '' 
+		AND SA1.D_E_L_E_T_ = '' 
+	INNER JOIN 
+		SC6010 SC6 
+		ON C5_NUM = C6_NUM 
+		AND C6_FILIAL = '0101' 
+		AND SC6.D_E_L_E_T_ = '' 
+	INNER JOIN 
+		SC9010 SC9 
+		ON C6_NUM = C9_PEDIDO 
+		AND C6_PRODUTO = C9_PRODUTO 
+		AND C6_ITEM = C9_ITEM 
+		AND C9_FILIAL = '0101' 
+		AND SC9.D_E_L_E_T_ = '' 
+WHERE 
+	C5_NUM = '000026' 
+	AND C5_FILIAL = '0101' 
+	AND SC5.D_E_L_E_T_ = '' 
+ORDER BY 
+	C5_NUM, C9_DATALIB DESC
 
 -- Grupo de produto e condicao de pagamento
 
