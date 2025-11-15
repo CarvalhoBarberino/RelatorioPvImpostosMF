@@ -54,7 +54,7 @@ user function UFATREL58()
 	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
 	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
 	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
-	local cPedido			:= "000057" //	"000009"	"000014"	"000055"	"000031"	"000015"	"000057"
+	local cPedido			:= "000011" //	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
 	//local cUFilial			:= "01" //	"01"		"0101"		"0101"		"0101"		"0101"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
@@ -76,9 +76,9 @@ user function UFATREL58()
 	local aDadosIt
 	local aGrupPrd
 	local aGrupPrd1
+	local aGrupPrdS
 	local aGrupPrd2
 	local aDupl
-
 
 	cPedido := FWInputBox("Digite o pedido:", cPedido)
 
@@ -160,6 +160,7 @@ user function UFATREL58()
 	ENDIF
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC5, .F., .T.)
 	dbSelectArea(cAliasC5)
+	(cAliasC5)->(dbGoTop())
 	if (cAliasC5)->(eOF())
 		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
 		FWRestArea(cArea)
@@ -229,6 +230,7 @@ user function UFATREL58()
 	ENDIF
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC6, .F., .T.)
 	dbSelectArea(cAliasC6)
+	(cAliasC6)->(dbGoTop())
 	if (cAliasC6)->(eOF())
 		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
 		FWRestArea(cArea)
@@ -261,8 +263,8 @@ user function UFATREL58()
 	cQy += "		AND C9_FILIAL = '" + FWxFilial("SC9") + "' " + CRLF
 	cQy += "		AND SC9.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
-	cQy += "	C5_NUM = '" + FWxFilial("SC5") + "' " + CRLF
-	cQy += "	AND C5_FILIAL = '0101' " + CRLF
+	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
+	cQy += "	AND C5_FILIAL = '" + FWxFilial("SC5") + "' " + CRLF
 	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
 	cQy += "ORDER BY " + CRLF
 	cQy += "	C5_NUM, C9_DATALIB DESC " + CRLF
@@ -275,6 +277,7 @@ user function UFATREL58()
 	ENDIF
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC9, .F., .T.)
 	dbSelectArea(cAliasC9)
+	(cAliasC9)->(dbGoTop())
 	if (cAliasC9)->(eOF())
 		MsgAlert("Não existem datas de liberação para este pedido", NOME_DO_FONTE)
 	endIf
@@ -425,7 +428,7 @@ user function UFATREL58()
 	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
 	aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
 	aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	itensC6(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aImprimir, @oPrinter)
+	printTab(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aImprimir, @oPrinter)
 
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aDados", aDados, , .F.))
@@ -449,6 +452,14 @@ user function UFATREL58()
 		showLog(VarInfo("aGrupPrd1", aGrupPrd1, , .F.))
 	#ENDIF
 
+	aGrupPrdS := aSelByIndx(aGrupPrd1, {2, 3, 4, 5, 6, 7, 8})
+	aGrupPrdS := aGroupBy(aGrupPrdS, 0)
+	aGrupPrdS := aToStr(aGrupPrdS, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
+	aGrupPrdS[1,1] := "Totais"
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdS", aGrupPrdS, , .F.))
+	#ENDIF
+
 	(cAliasC9)->(dbGoTop())
 	aDupl := Condicao(nSomaCol(aGrupPrd1, 6), (cAliasC5)->CONDICAO_PAG, , sToD(/*(cAliasC5)->DT_ENTREG*/(cAliasC9)->C9_DATALIB))
 	aDupl := aEnumera(aDupl, 0)
@@ -456,24 +467,21 @@ user function UFATREL58()
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aDupl", aDupl, , .F.))
 	#ENDIF
+	
+	rodaPeC5(nRowBase1 + 447, nColBase1 + 4, oPrinter, cPedido, (cAliasC5)->EMISSAO, (cAliasC5)->DT_ENTREG, (cAliasC5)->REPRESENTANTE)
 
-	aGrupPrd1 := aToStr(aGrupPrd1, {;
-		"", ;
-		"@E 999,999.99", ;
-		"@E 999,999.99", ;
-		"@E 999,999.99", ;
-		"@E 999,999.99", ;
-		"@E 999,999.99", ;
-		"@E 999,999.99", ;
-		"@E 999,999.99", ;
-		})
+	aGrupPrd1 := aToStr(aGrupPrd1, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aGrupPrd1", aGrupPrd1, , .F.))
 	#ENDIF
 	aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
 	aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
 	aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	itensC6(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd1, @oPrinter)
+	printTab(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd1, @oPrinter)
+
+	aMedidas := {208, 74, 56, 56, 93, 54, 41}
+	aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+	printTab(nRowBase1 + 487 + (len(aGrupPrd1) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
 
 	aGrupPrd2 := aSelByIndx(aGrupPrd, {;
 		DADOS_IT_GRUPO_DESCRI, ;
@@ -488,13 +496,14 @@ user function UFATREL58()
 	aCampos := {"Grupo", "Cond. Pagamento"}
 	aMedidas := {154, 70}
 	aAlinhamento := {PAD_LEFT, PAD_RIGHT}
-	itensC6(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd2, @oPrinter)
+	printTab(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd2, @oPrinter)
 
 	aCampos := {"Nº", "Vencimento", "Valor"}
 	aMedidas := {20, 80, 38}
 	aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	itensC6(nRowBase1 + 584, nColBase1 + 238, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[1], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
-	itensC6(nRowBase1 + 584, nColBase1 + 376, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[2], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+	printTab(nRowBase1 + 584, nColBase1 + 238, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[1], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+	printTab(nRowBase1 + 584, nColBase1 + 376, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[2], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+	rodaPeFim(@oPrinter, cAliasC5, cAliasC9)
 
 	#IFDEF MOSTRA_GRADE
 		oPrinter:Box(500, 500, 600, 600, "-2")
@@ -526,7 +535,7 @@ return
 
 // lib
 
-static function itensC6(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFields, aData, oPrinterRec)
+static function printTab(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFields, aData, oPrinterRec)
 	local nRowCount		:= 1
 	local nColCount		:= 1
 	local nRow_0		:= nRowInicio
@@ -536,12 +545,16 @@ static function itensC6(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFie
 	local oArial08		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 8 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial08b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 8 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 
-	for nColCount := 1 to len(aFields)
-		nCol_1 := nCol_0 + aWidth[nColCount]
-		oPrinterRec:Box(nRow_0, nCol_0, nRow_0 - nRowHeight, nCol_1, "-2")
-		oPrinterRec:SayAlign(nRow_0 - nRowHeight, nCol_0 + nMargemCel, aFields[nColCount], oArial08b, aWidth[nColCount] - 2 * nMargemCel, nRowHeight, , 2, 0)
-		nCol_0 := nCol_1
-	next
+	if valType(aFields) != "U"
+		for nColCount := 1 to len(aFields)
+			nCol_1 := nCol_0 + aWidth[nColCount]
+			oPrinterRec:Box(nRow_0, nCol_0, nRow_0 - nRowHeight, nCol_1, "-2")
+			oPrinterRec:SayAlign(nRow_0 - nRowHeight, nCol_0 + nMargemCel, aFields[nColCount], oArial08b, aWidth[nColCount] - 2 * nMargemCel, nRowHeight, , 2, 0)
+			nCol_0 := nCol_1
+		next
+	else
+		nRow_0 -= nRowHeight
+	endIf
 
 	nCol_0 := nColInicio
 	for nRowCount := 1 to len(aData)
@@ -558,7 +571,6 @@ static function itensC6(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFie
 return
 
 static function cabFama(oPrinterRec, nPagina, nPaginaTot)
-
 	local nRowBase1		:= 76
 	local nColBase1		:= 4
 	local nWidthCab		:= 586
@@ -571,20 +583,63 @@ static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 	local cPagina		:= "Pagina " + cValToChar(nPagina) + "/" + cValToChar(nPaginaTot)
 	local cStamp		:= "Impresso em "+ dToC(Date()) + " - " + Time()
 
-	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60, nColBase1 + nWidthCab - 4, "-2")
+	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60, nColBase1 + nWidthCab, "-2")
 	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1, cPagina, oArial08, nWidthCab, 20, , PAD_CENTER_H, 1)
 	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1 + round(nWidthCab / 2, 0), cStamp, oArial08, round(nWidthCab / 2, 0), 20, , PAD_RIGHT, 2)
 	oPrinterRec:SayAlign(nRowBase1 + 0, nColBase1, "M O L A S   F A M A", oArial18b, nWidthCab, 30, , PAD_CENTER_H, 2)
 	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1, "FAMA DO BRASIL IND DE MOLAS E AUTO PECAS LTDA", oArial15, nWidthCab, nDeltaY1, , PAD_CENTER_H, 2)
 	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1 + nDeltaY2, nColBase1, "ROD. BR 376 KM 232, S/N SAIDA P/ MARINGA - CAIXA POSTAL 917, APUCARANA/PR - Fone: (43) 3420-9000 Fax: (43) 3420-9001", oArial11, nWidthCab, nDeltaY2, , PAD_CENTER_H, 2)
+	oPrinterRec:SayBitmap(nRowBase1 + 0, nColBase1, "\testeLogo.bmp", 90, 36)
+	oPrinterRec:SayBitmap(nRowBase1 + 0, nColBase1 + nWidthCab - 90, "\testeLogo.bmp", 90, 36)
 
+return
+
+static function rodaPeC5(nRowBase1, nColBase1, oPrinterRec, cPedido, cEmissao, cDtEntrega, cVendedor)
+	local nWidth		:= 586
+	local nDeltaY1		:= 10
+	local oArial11		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 11 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+
+	cEmissao := cValToChar(sToD(cEmissao))
+	cDtEntrega := cValToChar(sToD(cDtEntrega))
+	oPrinterRec:Box(nRowBase1 , nColBase1, nRowBase1 + 2 * nDeltaY1 + 2, nColBase1 + nWidth, "-2")
+	oPrinterRec:SayAlign(nRowBase1 , nColBase1, "Data de emissão: " + cEmissao, oArial11, nWidth, nDeltaY1, , PAD_LEFT, 2)
+	oPrinterRec:SayAlign(nRowBase1 , nColBase1 + 220, "Pedido: " + cPedido, oArial11, nWidth, nDeltaY1, , PAD_LEFT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1, "Estimativa de entrega: " + cDtEntrega, oArial11, nWidth, nDeltaY1, , PAD_LEFT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1 + 220, "Representante: " + cVendedor, oArial11, nWidth, nDeltaY1, , PAD_LEFT, 2)
+return
+
+static function rodaPeFim(oPrinterRec, cAliasC5, cAliasC9)
+	local nRowBase1		:= 640
+	local nColBase1		:= 4
+	local nWidthPe		:= 586
+	local nDeltaY1		:= 10
+	local nWidSign		:= 255
+	local cDataLib
+	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial14		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 14 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+
+	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + 6 * nDeltaY1 + 12, nColBase1 + nWidthPe, "-2")
+	oPrinterRec:SayAlign(nRowBase1 + 0, nColBase1, "Observações", oArial18b, nWidthPe, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 1 * nDeltaY1, nColBase1, "* Frete pago até São Paulo.", oArial14, nWidthPe, 30, , PAD_LEFT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 2 * nDeltaY1, nColBase1, "* As mercadorias viajam por conta e risco do comprado.", oArial14, nWidthPe, 30, , PAD_LEFT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 3 * nDeltaY1, nColBase1, "* Não aceitaremos devoluções posteriores", oArial14, nWidthPe, 30, , PAD_LEFT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 4 * nDeltaY1, nColBase1, "* Consideramos o Pedido aceito caso não tenhamos um retorno documentando em 24 horas!", oArial14, nWidthPe, 30, , PAD_LEFT, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 5 * nDeltaY1, nColBase1, "* Os impostos, se incidentes, serão acrecidos quando do faturamento, observada a aliquota vigente na data e no estado!", oArial14, nWidthPe, 30, , PAD_LEFT, 2)
+
+	oPrinterRec:Line(nRowBase1 + 130, nColBase1, nRowBase1 + 130, nColBase1 + nWidSign, , "-2" )
+	oPrinterRec:SayAlign(nRowBase1 + 130, nColBase1, "Aprovação do cliente Data: ", oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
+
+	oPrinterRec:SayAlign(nRowBase1 + 112, nColBase1 + nWidthPe - nWidSign, (cAliasC5)->REPRESENTANTE, oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:Line(nRowBase1 + 130, nColBase1 + nWidthPe - nWidSign, nRowBase1 + 130, nColBase1 + nWidthPe, , "-2" )
+	cDataLib := cValToChar(sTod(((cAliasC9)->C9_DATALIB)))
+	oPrinterRec:SayAlign(nRowBase1 + 130, nColBase1 + nWidthPe - nWidSign, "Análise crítica - Data: " + cDataLib, oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
 return
 
 static function cabC5(oPrinterRec, cAliasC5)
 
 	local nRowBase1		:= 132
 	local nColBase1		:= 0
-	local nWidthCab		:= 586
+	local nWidthCab		:= 590
 	local nDeltaY1		:= 10
 	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
@@ -609,7 +664,7 @@ static function cabC5(oPrinterRec, cAliasC5)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 249, (cAliasC5)->CLI_IE, oArial12, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 357, "E-mail: ", oArial12b, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 392, (cAliasC5)->CLI_EMAIL, oArial12, 15,,)
-	oPrinterRec:SayAlign(nRowBase1 + 4 * nDeltaY1 + 17, nColBase1, "Pedido", oArial18b, nWidthCab, 16, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 4 * nDeltaY1 + 9, nColBase1, "Pedido", oArial18b, nWidthCab, 16, , PAD_CENTER_H, 2)
 
 return
 
@@ -622,7 +677,7 @@ static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 	local aQuant
 
 	For nDadosPos := 1 To Len(aDados2D)
-		cGroupText := aDados2D[nDadosPos][nGroupeBy]
+		cGroupText := iif(nGroupeBy != 0, aDados2D[nDadosPos][nGroupeBy], "")
 		aQuant := {}
 
 		for nCol := 1 to len(aDados2D[nDadosPos])
@@ -631,7 +686,7 @@ static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 
 		nFoundPos := 0
 		If Len(aGroup2D) > 0
-			nFoundPos := aScan(aGroup2D, {|y| y[nGroupeBy] == cGroupText})
+			nFoundPos := aScan(aGroup2D, iif(nGroupeBy != 0, {|y| y[nGroupeBy] == cGroupText}, {|y| .T.}))
 		EndIf
 
 		If nFoundPos == 0
