@@ -3,7 +3,7 @@
 #INCLUDE "RPTDef.ch"
 
 #DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
-//#DEFINE MOSTRA_QUERY
+#DEFINE MOSTRA_QUERY
 //#DEFINE MOSTRA_GRADE
 #DEFINE IMP_SPOOL		2
 #DEFINE IMP_PDF			6
@@ -468,7 +468,7 @@ user function UFATREL58()
 		showLog(VarInfo("aDupl", aDupl, , .F.))
 	#ENDIF
 	
-	rodaPeC5(nRowBase1 + 447, nColBase1 + 4, oPrinter, cPedido, (cAliasC5)->EMISSAO, (cAliasC5)->DT_ENTREG, (cAliasC5)->REPRESENTANTE)
+	rodaPeC5(nRowBase1 + 447, nColBase1 + 4, oPrinter, cPedido, cAliasC5)
 
 	aGrupPrd1 := aToStr(aGrupPrd1, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
 	#IFDEF MOSTRA_QUERY
@@ -594,13 +594,14 @@ static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 
 return
 
-static function rodaPeC5(nRowBase1, nColBase1, oPrinterRec, cPedido, cEmissao, cDtEntrega, cVendedor)
+static function rodaPeC5(nRowBase1, nColBase1, oPrinterRec, cPedido, cAliasC5)
 	local nWidth		:= 586
 	local nDeltaY1		:= 10
 	local oArial11		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 11 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local cEmissao		:= cValToChar(sToD((cAliasC5)->EMISSAO))
+	local cDtEntrega	:= cValToChar(sToD((cAliasC5)->DT_ENTREG))
+	local cVendedor		:= cValToChar((cAliasC5)->REPRESENTANTE)
 
-	cEmissao := cValToChar(sToD(cEmissao))
-	cDtEntrega := cValToChar(sToD(cDtEntrega))
 	oPrinterRec:Box(nRowBase1 , nColBase1, nRowBase1 + 2 * nDeltaY1 + 2, nColBase1 + nWidth, "-2")
 	oPrinterRec:SayAlign(nRowBase1 , nColBase1, "Data de emissão: " + cEmissao, oArial11, nWidth, nDeltaY1, , PAD_LEFT, 2)
 	oPrinterRec:SayAlign(nRowBase1 , nColBase1 + 220, "Pedido: " + cPedido, oArial11, nWidth, nDeltaY1, , PAD_LEFT, 2)
@@ -629,7 +630,7 @@ static function rodaPeFim(oPrinterRec, cAliasC5, cAliasC9)
 	oPrinterRec:Line(nRowBase1 + 130, nColBase1, nRowBase1 + 130, nColBase1 + nWidSign, , "-2" )
 	oPrinterRec:SayAlign(nRowBase1 + 130, nColBase1, "Aprovação do cliente Data: ", oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
 
-	oPrinterRec:SayAlign(nRowBase1 + 112, nColBase1 + nWidthPe - nWidSign, (cAliasC5)->REPRESENTANTE, oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 112, nColBase1 + nWidthPe - nWidSign, cValToChar((cAliasC5)->REPRESENTANTE), oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
 	oPrinterRec:Line(nRowBase1 + 130, nColBase1 + nWidthPe - nWidSign, nRowBase1 + 130, nColBase1 + nWidthPe, , "-2" )
 	cDataLib := cValToChar(sTod(((cAliasC9)->C9_DATALIB)))
 	oPrinterRec:SayAlign(nRowBase1 + 130, nColBase1 + nWidthPe - nWidSign, "Análise crítica - Data: " + cDataLib, oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
