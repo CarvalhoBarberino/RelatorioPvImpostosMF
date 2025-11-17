@@ -3,7 +3,7 @@
 #INCLUDE "RPTDef.ch"
 
 #DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
-#DEFINE MOSTRA_QUERY
+//#DEFINE MOSTRA_QUERY
 //#DEFINE MOSTRA_GRADE
 #DEFINE IMP_SPOOL		2
 #DEFINE IMP_PDF			6
@@ -54,7 +54,7 @@ user function UFATREL58()
 	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
 	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
 	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
-	local cPedido			:= "000011" //	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
+	local cPedido			:= "000057" //	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
 	//local cUFilial			:= "01" //	"01"		"0101"		"0101"		"0101"		"0101"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
@@ -479,107 +479,7 @@ user function UFATREL58()
 		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
 	#ENDIF
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	// Inicio da parte gráfica
 	oPrinter := FWMsPrinter():New(;
 		cNomeDoArquivo /*cFilePrintert*/, ;
 		iif(TESTE_PDF, IMP_PDF, IMP_SPOOL) /*nDevice*/, ;
@@ -599,53 +499,45 @@ user function UFATREL58()
 	oPrinter:SetMargin(3,10,3,10) // nEsquerda, nSuperior, nDireita, nInferior
 	oPrinter:cPathPDF := "C:\TEMP\" // Caso seja utilizada impressï¿½o em IMP_SPOOL
 	oPrinter:StartPage()
-	cabFama(@oPrinter, 1 /*nPaginaAtual*/, 2 /*nPaginaTotal*/)
-	cabC5(@oPrinter, cAliasC5)
 
-	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
-	aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
-	aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	printTab(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aImpIT, @oPrinter)
+	nItPag := len(aItPorPag)
+	for nI := 1 to nItPag
+		cabFama(@oPrinter, nI /*nPaginaAtual*/, nItPag /*nPaginaTotal*/)
+		cabC5(@oPrinter, cAliasC5)
 
+		aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
+		aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
+		aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+		printTab(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aItPorPag[nI], @oPrinter)
 
-	rodaPeC5(nRowBase1 + 447, nColBase1 + 4, oPrinter, cPedido, cAliasC5)
+		if nI != nItPag
+			oPrinter:EndPage()
+			oPrinter:StartPage()
+		else
+			rodaPeC5(nRowBase1 + 447, nColBase1 + 4, oPrinter, cPedido, cAliasC5)
 
-	aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
-	aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
-	aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	printTab(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdI, @oPrinter)
+			aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
+			aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
+			aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+			printTab(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdI, @oPrinter)
 
-	aMedidas := {208, 74, 56, 56, 93, 54, 41}
-	aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	printTab(nRowBase1 + 487 + (len(aGrupPrdI) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
+			aMedidas := {208, 74, 56, 56, 93, 54, 41}
+			aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+			printTab(nRowBase1 + 487 + (len(aGrupPrdI) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
 
+			aCampos := {"Grupo", "Cond. Pagamento"}
+			aMedidas := {154, 70}
+			aAlinhamento := {PAD_LEFT, PAD_RIGHT}
+			printTab(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdCP, @oPrinter)
 
-	aCampos := {"Grupo", "Cond. Pagamento"}
-	aMedidas := {154, 70}
-	aAlinhamento := {PAD_LEFT, PAD_RIGHT}
-	printTab(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdCP, @oPrinter)
-
-	aCampos := {"Nº", "Vencimento", "Valor"}
-	aMedidas := {20, 80, 38}
-	aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	printTab(nRowBase1 + 584, nColBase1 + 238, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[1], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
-	printTab(nRowBase1 + 584, nColBase1 + 376, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[2], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
-	rodaPeFim(@oPrinter, cAliasC5, cAliasC9)
-
-	#IFDEF MOSTRA_GRADE
-		oPrinter:Box(500, 500, 600, 600, "-2")
-		oPrinter:Say(600, 600, "600x600", oArial10, 15,,)
-		oPrinter:Box(400, 400, 500, 500, "-2")
-		oPrinter:Say(500, 500, "500x500", oArial10, 15,,)
-		oPrinter:Box(300, 300, 400, 400, "-2")
-		oPrinter:Say(400, 400, "400x400", oArial10, 15,,)
-		oPrinter:Box(200, 200, 300, 300, "-2")
-		oPrinter:Say(300, 300, "300x300", oArial10, 15,,)
-		oPrinter:Box(100, 100, 200, 200, "-2")
-		oPrinter:Say(200, 200, "200x200", oArial10, 15,,)
-		oPrinter:Box(700, 100, 730, 300, "-2")
-		oPrinter:SayAlign(700, 100, "TEXTO", oArial10, 200, 30, , PAD_CENTER_H, )
-	#ENDIF
+			aCampos := {"Nº", "Vencimento", "Valor"}
+			aMedidas := {20, 80, 38}
+			aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+			printTab(nRowBase1 + 584, nColBase1 + 238, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[1], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+			printTab(nRowBase1 + 584, nColBase1 + 376, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[2], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+			rodaPeFim(@oPrinter, cAliasC5, cAliasC9)
+		endIf
+	next
 
 	oPrinter:EndPage()
 	If TESTE_PDF
