@@ -60,25 +60,29 @@ user function UFATREL58()
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
 	local cAliasC9			:= "REL58C9"
-	local aImprimirIt		:= {}
+	local aImpITCol		:= {}
 	local aCampos			:= {}
 	local aMedidas			:= {}
 	local aAlinhamento		:= {}
-	local aImprimir			:= {}
+	local aImpIT			:= {}
 	local cArea				:= FWGetArea()
 	local nRowBase1			:= 0
 	local nColBase1			:= 0
 	//local nRowBase2			:= 0
 	//local nColBase2			:= 0
 	local nI				:= 0
+	local nLimit			:= 5
+	local nLinha
+	local nItPag
 	//local aImpostos			:= {}
 	local aDados
 	local aDadosIt
 	local aGrupPrd
-	local aGrupPrd1
+	local aGrupPrdI
 	local aGrupPrdS
-	local aGrupPrd2
+	local aGrupPrdCP
 	local aDupl
+	local aItPorPag			:= {{}}
 
 	cPedido := FWInputBox("Digite o pedido:", cPedido)
 
@@ -339,7 +343,7 @@ user function UFATREL58()
 	EndIf
 
 	nI := 0
-	aImprimir := {}
+	aImpIT := {}
 	aDados := {}
 	(cAliasC6)->(dbGoTop())
 	while !(cAliasC6)->(eOF())
@@ -377,31 +381,204 @@ user function UFATREL58()
 		aAdd(aDadosIt, (cAliasC6)->DESCONTOS_UMOLART)
 		aAdd(aDados, aDadosIt)
 
-		aImprimirIt := {}
-		aAdd(aImprimirIt, (cAliasC6)->ITEM)
-		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
-		aAdd(aImprimirIt, cValToChar((cAliasC6)->QUANT))
-		aAdd(aImprimirIt, cValToChar((cAliasC6)->EMB))
-		aAdd(aImprimirIt, (cAliasC6)->UNIDADE)
-		aAdd(aImprimirIt, Alltrim((cAliasC6)->CODIGO_FAMA))
-		aAdd(aImprimirIt, Alltrim((cAliasC6)->DESCRICAO))
-		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9,999.99")))
-		aAdd(aImprimirIt, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99,999.99")))
-		aAdd(aImprimirIt, Alltrim(Transform(aDadosIt[DADOS_IT_IT_ALIQIPI], "@E 99.99")))
-		aAdd(aImprimirIt, Alltrim(Transform(aDadosIt[DADOS_IT_IT_VALIPI], "@E 9,999.99")))
-		aAdd(aImprimir, aImprimirIt)
+		aImpITCol := {}
+		aAdd(aImpITCol, (cAliasC6)->ITEM)
+		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
+		aAdd(aImpITCol, cValToChar((cAliasC6)->QUANT))
+		aAdd(aImpITCol, cValToChar((cAliasC6)->EMB))
+		aAdd(aImpITCol, (cAliasC6)->UNIDADE)
+		aAdd(aImpITCol, Alltrim((cAliasC6)->CODIGO_FAMA))
+		aAdd(aImpITCol, Alltrim((cAliasC6)->DESCRICAO))
+		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9,999.99")))
+		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99,999.99")))
+		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DADOS_IT_IT_ALIQIPI], "@E 99.99")))
+		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DADOS_IT_IT_VALIPI], "@E 9,999.99")))
+		aAdd(aImpIT, aImpITCol)
 
 		(cAliasC6)->(dbSkip())
 	endDo
-
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aDados", aDados, , .F.))
+	#ENDIF
 	MaFisEnd()
 
+	// Separa itens por página
+	nLinha := 1
+	nItPag := 1
+	for nI := 1 to len(aImpIT)
+		if nLinha <= nLimit
+			aAdd(aItPorPag[nItPag], aImpIT[nI])
+			nLinha++
+		else
+			nItPag++
+			nI--
+			nLinha := 1
+			aAdd(aItPorPag, {})
+		endIf
+	next
 	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aItPorPag", aItPorPag, , .F.))
 		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
 			FWRestArea(cArea)
 			return
 		endIf
 	#ENDIF
+
+	// Agrupa por produto
+	aGrupPrd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGroupBy", aGrupPrd, , .F.))
+	#ENDIF
+	aGrupPrdI := aSelByIndx(aGrupPrd, {;
+		DADOS_IT_GRUPO_DESCRI, ;
+		DADOS_IT_C6_VALDESC, ;
+		DADOS_IT_VALOR_TOTAL, ;
+		DADOS_IT_IT_VALIPI, ;
+		DADOS_IT_IT_VALSOL, ;
+		DADOS_IT_VALOR_C_IMPOSTOS, ;
+		DADOS_IT_PESO_TOTAL, ;
+		DADOS_IT_QUANT ;
+		})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
+	#ENDIF
+
+	// Calcula Totai de agrupamento por produto
+	aGrupPrdS := aSelByIndx(aGrupPrdI, {2, 3, 4, 5, 6, 7, 8})
+	aGrupPrdS := aGroupBy(aGrupPrdS, 0)
+	aGrupPrdS := aToStr(aGrupPrdS, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
+	aGrupPrdS[1,1] := "Totais"
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdS", aGrupPrdS, , .F.))
+	#ENDIF
+
+	// Calcula condicoes de pagamento
+	(cAliasC9)->(dbGoTop())
+	aDupl := Condicao(nSomaCol(aGrupPrdI, 6), (cAliasC5)->CONDICAO_PAG, , sToD((cAliasC9)->C9_DATALIB))
+	aDupl := aEnumera(aDupl, 0)
+	aDupl := aImparPar(aDupl)
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aDupl", aDupl, , .F.))
+	#ENDIF
+
+	// Calcula condicao de pagamento por produto
+	aGrupPrdCP := aSelByIndx(aGrupPrd, {;
+		DADOS_IT_GRUPO_DESCRI, ;
+		DADOS_IT_E4_DESCRI})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdCP", aGrupPrdCP, , .F.))
+	#ENDIF
+	aGrupPrdCP := aToStr(aGrupPrdCP, {"", ""})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdCP", aGrupPrdCP, , .F.))
+	#ENDIF
+
+	// Transforma grupo de produto em string
+	aGrupPrdI := aToStr(aGrupPrdI, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
+	#ENDIF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	oPrinter := FWMsPrinter():New(;
 		cNomeDoArquivo /*cFilePrintert*/, ;
@@ -428,75 +605,25 @@ user function UFATREL58()
 	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
 	aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
 	aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	printTab(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aImprimir, @oPrinter)
+	printTab(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aImpIT, @oPrinter)
 
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aDados", aDados, , .F.))
-	#ENDIF
 
-	aGrupPrd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGroupBy", aGrupPrd, , .F.))
-	#ENDIF
-	aGrupPrd1 := aSelByIndx(aGrupPrd, {;
-		DADOS_IT_GRUPO_DESCRI, ;
-		DADOS_IT_C6_VALDESC, ;
-		DADOS_IT_VALOR_TOTAL, ;
-		DADOS_IT_IT_VALIPI, ;
-		DADOS_IT_IT_VALSOL, ;
-		DADOS_IT_VALOR_C_IMPOSTOS, ;
-		DADOS_IT_PESO_TOTAL, ;
-		DADOS_IT_QUANT ;
-		})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrd1", aGrupPrd1, , .F.))
-	#ENDIF
-
-	aGrupPrdS := aSelByIndx(aGrupPrd1, {2, 3, 4, 5, 6, 7, 8})
-	aGrupPrdS := aGroupBy(aGrupPrdS, 0)
-	aGrupPrdS := aToStr(aGrupPrdS, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
-	aGrupPrdS[1,1] := "Totais"
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdS", aGrupPrdS, , .F.))
-	#ENDIF
-
-	(cAliasC9)->(dbGoTop())
-	aDupl := Condicao(nSomaCol(aGrupPrd1, 6), (cAliasC5)->CONDICAO_PAG, , sToD(/*(cAliasC5)->DT_ENTREG*/(cAliasC9)->C9_DATALIB))
-	aDupl := aEnumera(aDupl, 0)
-	aDupl := aImparPar(aClone(aDupl))
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aDupl", aDupl, , .F.))
-	#ENDIF
-	
 	rodaPeC5(nRowBase1 + 447, nColBase1 + 4, oPrinter, cPedido, cAliasC5)
 
-	aGrupPrd1 := aToStr(aGrupPrd1, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrd1", aGrupPrd1, , .F.))
-	#ENDIF
 	aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
 	aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
 	aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	printTab(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd1, @oPrinter)
+	printTab(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdI, @oPrinter)
 
 	aMedidas := {208, 74, 56, 56, 93, 54, 41}
 	aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-	printTab(nRowBase1 + 487 + (len(aGrupPrd1) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
+	printTab(nRowBase1 + 487 + (len(aGrupPrdI) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
 
-	aGrupPrd2 := aSelByIndx(aGrupPrd, {;
-		DADOS_IT_GRUPO_DESCRI, ;
-		DADOS_IT_E4_DESCRI})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrd2", aGrupPrd2, , .F.))
-	#ENDIF
-	aGrupPrd2 := aToStr(aGrupPrd2, {"", ""})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrd2", aGrupPrd2, , .F.))
-	#ENDIF
+
 	aCampos := {"Grupo", "Cond. Pagamento"}
 	aMedidas := {154, 70}
 	aAlinhamento := {PAD_LEFT, PAD_RIGHT}
-	printTab(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrd2, @oPrinter)
+	printTab(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdCP, @oPrinter)
 
 	aCampos := {"Nº", "Vencimento", "Valor"}
 	aMedidas := {20, 80, 38}
@@ -750,10 +877,11 @@ static function nSomaCol(aDados2D, nCampo)
 	next
 return nSoma
 
-static function aImparPar(aOri)
-	local nRow			:= 0
-	local aImpar		:= {}
-	local aPar			:= {}
+static function aImparPar(aRec)
+	local aOri		:= aClone(aRec)
+	local nRow		:= 0
+	local aImpar	:= {}
+	local aPar		:= {}
 	for nRow := 1 to len(aOri)
 		if nRow % 2 == 1
 			aAdd(aImpar, aOri[nRow])
