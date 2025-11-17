@@ -49,6 +49,7 @@
 #DEFINE DADOS_IT_DESCONTOS_UMOLART	30
 
 user function UFATREL58()
+	local lComMaFis			:= .F.
 	local oPrinter
 	local cNomeDoArquivo	:= "teste.pdf"
 	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
@@ -286,61 +287,63 @@ user function UFATREL58()
 		MsgAlert("Não existem datas de liberação para este pedido", NOME_DO_FONTE)
 	endIf
 
-	MaFisIni(;
-		(cAliasC5)->C5_CLIENTE, ;
-		(cAliasC5)->C5_LOJACLI, ;
-		Iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
-		(cAliasC5)->C5_TIPO, ;
-		(cAliasC5)->C5_TIPOCLI, ;
-		MaFisRelImp("MT100", {"SF2", "SD2"}) /*Relacao de Impostos que suportados no arquivo*/, ;
+	if lComMaFis
+		MaFisIni(;
+			(cAliasC5)->C5_CLIENTE, ;
+			(cAliasC5)->C5_LOJACLI, ;
+			Iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
+			(cAliasC5)->C5_TIPO, ;
+			(cAliasC5)->C5_TIPOCLI, ;
+			MaFisRelImp("MT100", {"SF2", "SD2"}) /*Relacao de Impostos que suportados no arquivo*/, ;
 		/*Tipo de complemento*/, ;
 		/*Permite Incluir Impostos no Rodape .T./.F.*/, ;
-		"SB1" /*Alias do Cadastro de Produtos - ("SBI" P/ Front Loja)*/, ;
-		"MATA410" /*Nome da rotina que esta utilizando a funcao*/;
-		)
-
-	nI := 0
-	(cAliasC6)->(dbGoTop())
-	while !(cAliasC6)->(eOF())
-		nI++
-		MaFisAdd(;
-			(cAliasC6)->C6_PRODUTO, ;
-			(cAliasC6)->C6_TES, ;
-			(cAliasC6)->QUANT, ;
-			(cAliasC6)->VALOR_UNI, ;
-			(cAliasC6)->C6_VALDESC, ;
-			(cAliasC6)->C6_NFORI, ;
-			(cAliasC6)->C6_SERIORI, ;
-			0 /*RecNo da NF Original no arq SD1/SD2*/,;
-			0 /*Valor do Frete do Item               ( Opcional )*/, ;
-			0 /*Valor da Despesa do item             ( Opcional )*/, ;
-			0 /*Valor do Seguro do item              ( Opcional )*/, ;
-			0 /*Valor do Frete Autonomo              ( Opcional )*/, ;
-			(cAliasC6)->VALOR_TOTAL /*Valor da Mercadoria                  ( Obrigatorio )*/, ;
-			0 /*Valor da Embalagem                   ( Opcional )*/, ;
-			(cAliasC6)->SB1_REC /*RecNo do SB1*/, ;
-			0 /*RecNo do SF4*/)
-		MaFisLoad("IT_VALMERC", (cAliasC6)->VALOR_TOTAL, nI)
-		MaFisAlt("IT_PESO", (cAliasC6)->B1_PESO, nI)
-		(cAliasC6)->(dbSkip())
-	endDo
-
-	MaFisAlt("NF_FRETE", (cAliasC5)->C5_FRETE)
-	MaFisAlt("NF_SEGURO", (cAliasC5)->C5_SEGURO)
-	MaFisAlt("NF_DESPESA", (cAliasC5)->C5_DESPESA)
-	MaFisAlt("NF_AUTONOMO", (cAliasC5)->C5_FRETAUT)
-	If (cAliasC5)->C5_DESCONT > 0
-		MaFisAlt(;
-			"NF_DESCONTO", ;
-			Min(MaFisRet(, "NF_VALMERC")-0.01, (cAliasC5)->C5_DESCONT+MaFisRet(, "NF_DESCONTO"));
+			"SB1" /*Alias do Cadastro de Produtos - ("SBI" P/ Front Loja)*/, ;
+			"MATA410" /*Nome da rotina que esta utilizando a funcao*/;
 			)
-	EndIf
-	If (cAliasC5)->C5_PDESCAB > 0
-		MaFisAlt(;
-			"NF_DESCONTO", ;
-			A410Arred(MaFisRet(, "NF_VALMERC") * (cAliasC5)->C5_PDESCAB / 100, "C6_VALOR") + MaFisRet(, "NF_DESCONTO");
-			)
-	EndIf
+
+		nI := 0
+		(cAliasC6)->(dbGoTop())
+		while !(cAliasC6)->(eOF())
+			nI++
+			MaFisAdd(;
+				(cAliasC6)->C6_PRODUTO, ;
+				(cAliasC6)->C6_TES, ;
+				(cAliasC6)->QUANT, ;
+				(cAliasC6)->VALOR_UNI, ;
+				(cAliasC6)->C6_VALDESC, ;
+				(cAliasC6)->C6_NFORI, ;
+				(cAliasC6)->C6_SERIORI, ;
+				0 /*RecNo da NF Original no arq SD1/SD2*/,;
+				0 /*Valor do Frete do Item               ( Opcional )*/, ;
+				0 /*Valor da Despesa do item             ( Opcional )*/, ;
+				0 /*Valor do Seguro do item              ( Opcional )*/, ;
+				0 /*Valor do Frete Autonomo              ( Opcional )*/, ;
+				(cAliasC6)->VALOR_TOTAL /*Valor da Mercadoria                  ( Obrigatorio )*/, ;
+				0 /*Valor da Embalagem                   ( Opcional )*/, ;
+				(cAliasC6)->SB1_REC /*RecNo do SB1*/, ;
+				0 /*RecNo do SF4*/)
+			MaFisLoad("IT_VALMERC", (cAliasC6)->VALOR_TOTAL, nI)
+			MaFisAlt("IT_PESO", (cAliasC6)->B1_PESO, nI)
+			(cAliasC6)->(dbSkip())
+		endDo
+
+		MaFisAlt("NF_FRETE", (cAliasC5)->C5_FRETE)
+		MaFisAlt("NF_SEGURO", (cAliasC5)->C5_SEGURO)
+		MaFisAlt("NF_DESPESA", (cAliasC5)->C5_DESPESA)
+		MaFisAlt("NF_AUTONOMO", (cAliasC5)->C5_FRETAUT)
+		If (cAliasC5)->C5_DESCONT > 0
+			MaFisAlt(;
+				"NF_DESCONTO", ;
+				Min(MaFisRet(, "NF_VALMERC")-0.01, (cAliasC5)->C5_DESCONT+MaFisRet(, "NF_DESCONTO"));
+				)
+		EndIf
+		If (cAliasC5)->C5_PDESCAB > 0
+			MaFisAlt(;
+				"NF_DESCONTO", ;
+				A410Arred(MaFisRet(, "NF_VALMERC") * (cAliasC5)->C5_PDESCAB / 100, "C6_VALOR") + MaFisRet(, "NF_DESCONTO");
+				)
+		EndIf
+	endIf
 
 	nI := 0
 	aImpIT := {}
@@ -368,10 +371,17 @@ user function UFATREL58()
 		aAdd(aDadosIt, (cAliasC6)->VALOR_UNI)
 		aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL)
 		aAdd(aDadosIt, (cAliasC6)->C5_FRETE)
-		aAdd(aDadosIt, MaFisRet(nI, "IT_ALIQIPI"))
-		aAdd(aDadosIt, MaFisRet(nI, "IT_VALIPI"))
-		aAdd(aDadosIt, MaFisRet(nI, "IT_VALSOL"))
-		aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
+		if lComMaFis
+			aAdd(aDadosIt, MaFisRet(nI, "IT_ALIQIPI"))
+			aAdd(aDadosIt, MaFisRet(nI, "IT_VALIPI"))
+			aAdd(aDadosIt, MaFisRet(nI, "IT_VALSOL"))
+			aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
+		else
+			aAdd(aDadosIt, 0)
+			aAdd(aDadosIt, 0)
+			aAdd(aDadosIt, 0)
+			aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL)
+		endIf
 		aAdd(aDadosIt, (cAliasC6)->QUANT * (cAliasC6)->B1_PESO)
 		aAdd(aDadosIt, (cAliasC6)->GRUPO_COD)
 		aAdd(aDadosIt, (cAliasC6)->GRUPO_DESCRI)
@@ -400,7 +410,9 @@ user function UFATREL58()
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aDados", aDados, , .F.))
 	#ENDIF
-	MaFisEnd()
+	if lComMaFis
+		MaFisEnd()
+	endIf
 
 	// Separa itens por página
 	nLinha := 1
@@ -508,33 +520,39 @@ user function UFATREL58()
 		aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
 		aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
 		aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-		printTab(nRowBase1 + 221, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aItPorPag[nI], @oPrinter)
+		printTab(nRowBase1 + 210, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aItPorPag[nI], @oPrinter)
 
 		if nI != nItPag
 			oPrinter:EndPage()
 			oPrinter:StartPage()
 		else
-			rodaPeC5(nRowBase1 + 447, nColBase1 + 4, oPrinter, cPedido, cAliasC5)
+			rodaPeC5(nRowBase1 + 550, nColBase1 + 4, oPrinter, cPedido, cAliasC5)
 
+			// Imprime por grupo de produtos
 			aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
 			aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
 			aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-			printTab(nRowBase1 + 487, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdI, @oPrinter)
+			printTab(nRowBase1 + 590, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdI, @oPrinter)
 
+			// Imprime totais
 			aMedidas := {208, 74, 56, 56, 93, 54, 41}
 			aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-			printTab(nRowBase1 + 487 + (len(aGrupPrdI) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
+			printTab(nRowBase1 + 590 + (len(aGrupPrdI) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
 
+			// Imprime condicoes de pagamento por grupo de produto
 			aCampos := {"Grupo", "Cond. Pagamento"}
 			aMedidas := {154, 70}
 			aAlinhamento := {PAD_LEFT, PAD_RIGHT}
-			printTab(nRowBase1 + 584, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdCP, @oPrinter)
+			printTab(nRowBase1 + 657, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdCP, @oPrinter)
 
+			// Imprime Parcelas e vencimentos
 			aCampos := {"Nº", "Vencimento", "Valor"}
 			aMedidas := {20, 80, 38}
 			aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
-			printTab(nRowBase1 + 584, nColBase1 + 238, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[1], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
-			printTab(nRowBase1 + 584, nColBase1 + 376, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[2], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+			printTab(nRowBase1 + 657, nColBase1 + 238, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[1], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+			printTab(nRowBase1 + 657, nColBase1 + 376, 10, aMedidas, aAlinhamento, aCampos, aToStr(aDupl[2], {"@E 9", "", "@E 99,999.99"}), @oPrinter)
+
+			// Imprime roda pé final
 			rodaPeFim(@oPrinter, cAliasC5, cAliasC9)
 		endIf
 	next
@@ -629,7 +647,7 @@ static function rodaPeC5(nRowBase1, nColBase1, oPrinterRec, cPedido, cAliasC5)
 return
 
 static function rodaPeFim(oPrinterRec, cAliasC5, cAliasC9)
-	local nRowBase1		:= 640
+	local nRowBase1		:= 713
 	local nColBase1		:= 4
 	local nWidthPe		:= 586
 	local nDeltaY1		:= 10
@@ -646,13 +664,13 @@ static function rodaPeFim(oPrinterRec, cAliasC5, cAliasC9)
 	oPrinterRec:SayAlign(nRowBase1 + 4 * nDeltaY1, nColBase1, "* Consideramos o Pedido aceito caso não tenhamos um retorno documentando em 24 horas!", oArial14, nWidthPe, 30, , PAD_LEFT, 2)
 	oPrinterRec:SayAlign(nRowBase1 + 5 * nDeltaY1, nColBase1, "* Os impostos, se incidentes, serão acrecidos quando do faturamento, observada a aliquota vigente na data e no estado!", oArial14, nWidthPe, 30, , PAD_LEFT, 2)
 
-	oPrinterRec:Line(nRowBase1 + 130, nColBase1, nRowBase1 + 130, nColBase1 + nWidSign, , "-2" )
-	oPrinterRec:SayAlign(nRowBase1 + 130, nColBase1, "Aprovação do cliente Data: ", oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:Line(nRowBase1 + 110, nColBase1, nRowBase1 + 110, nColBase1 + nWidSign, , "-2" )
+	oPrinterRec:SayAlign(nRowBase1 + 110, nColBase1, "Aprovação do cliente Data: ", oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
 
-	oPrinterRec:SayAlign(nRowBase1 + 112, nColBase1 + nWidthPe - nWidSign, cValToChar((cAliasC5)->REPRESENTANTE), oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
-	oPrinterRec:Line(nRowBase1 + 130, nColBase1 + nWidthPe - nWidSign, nRowBase1 + 130, nColBase1 + nWidthPe, , "-2" )
+	oPrinterRec:SayAlign(nRowBase1 + 92, nColBase1 + nWidthPe - nWidSign, cValToChar((cAliasC5)->REPRESENTANTE), oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:Line(nRowBase1 + 110, nColBase1 + nWidthPe - nWidSign, nRowBase1 + 110, nColBase1 + nWidthPe, , "-2" )
 	cDataLib := cValToChar(sTod(((cAliasC9)->C9_DATALIB)))
-	oPrinterRec:SayAlign(nRowBase1 + 130, nColBase1 + nWidthPe - nWidSign, "Análise crítica - Data: " + cDataLib, oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
+	oPrinterRec:SayAlign(nRowBase1 + 110, nColBase1 + nWidthPe - nWidSign, "Análise crítica - Data: " + cDataLib, oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
 return
 
 static function cabC5(oPrinterRec, cAliasC5)
