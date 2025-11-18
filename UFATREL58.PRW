@@ -48,20 +48,19 @@
 #DEFINE DADOS_IT_E4_DESCRI			29
 #DEFINE DADOS_IT_DESCONTOS_UMOLART	30
 
-user function UFATREL58()
-	local lComMaFis			:= .F.
+user function FATREL58(lComMaFis)
 	local oPrinter
 	local cNomeDoArquivo	:= "teste.pdf"
 	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
 	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
 	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
-	local cPedido			:= "000057" //	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
+	//local cPedido			:= "000057" //	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
 	//local cUFilial			:= "01" //	"01"		"0101"		"0101"		"0101"		"0101"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
 	local cAliasC9			:= "REL58C9"
-	local aImpITCol		:= {}
+	local aImpITCol			:= {}
 	local aCampos			:= {}
 	local aMedidas			:= {}
 	local aAlinhamento		:= {}
@@ -72,7 +71,8 @@ user function UFATREL58()
 	//local nRowBase2			:= 0
 	//local nColBase2			:= 0
 	local nI				:= 0
-	local nLimit			:= 5
+	local nLimitJus			:= 33
+	local nLimitFol			:= 63
 	local nLinha
 	local nItPag
 	//local aImpostos			:= {}
@@ -85,7 +85,7 @@ user function UFATREL58()
 	local aDupl
 	local aItPorPag			:= {{}}
 
-	cPedido := FWInputBox("Digite o pedido:", cPedido)
+	cPedido := SC5->C5_NUM
 
 	cQy := "SELECT " + CRLF
 	cQy += "	C5_NUM, " + CRLF
@@ -414,18 +414,62 @@ user function UFATREL58()
 		MaFisEnd()
 	endIf
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	// Separa itens por página
 	nLinha := 1
 	nItPag := 1
 	for nI := 1 to len(aImpIT)
-		if nLinha <= nLimit
+		if nLinha <= nLimitJus
 			aAdd(aItPorPag[nItPag], aImpIT[nI])
 			nLinha++
 		else
-			nItPag++
-			nI--
-			nLinha := 1
-			aAdd(aItPorPag, {})
+			if len(aImpIT) == nI .or. nLimitFol < nLinha
+				nItPag++
+				nI--
+				nLinha := 1
+				aAdd(aItPorPag, {})
+			else
+			aAdd(aItPorPag[nItPag], aImpIT[nI])
+			nLinha++
+			endIf
 		endIf
 	next
 	#IFDEF MOSTRA_QUERY
@@ -435,6 +479,46 @@ user function UFATREL58()
 			return
 		endIf
 	#ENDIF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// Agrupa por produto
 	aGrupPrd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
