@@ -125,7 +125,7 @@ user function FATREL58(lComMaFis)
 	cQy += "				ELSE 'C6_ENTREG' " + CRLF
 	cQy += "			END " + CRLF
 	cQy += "	END AS DT_ENTREGO, " + CRLF
-	cQy += "	A3_COD + ' - ' + A3_NOME AS REPRESENTANTE, " + CRLF
+	cQy += "	A3_COD || ' - ' || A3_NOME AS REPRESENTANTE, " + CRLF
 	cQy += "	C5_TPFRETE, " + CRLF
 	cQy += "	C5_FRETE, " + CRLF
 	cQy += "	C5_SEGURO, " + CRLF
@@ -194,7 +194,7 @@ user function FATREL58(lComMaFis)
 	cQy += "	C5_FRETE, " + CRLF
 	cQy += "	B1_GRUPO AS GRUPO_COD, " + CRLF
 	cQy += "	BM_DESC AS GRUPO_DESCRI, " + CRLF
-	cQy += "	'C6_UDCIDP + C6_UDCVEND + C6_UDCGPPD + C6_UDCCLI' AS DESCONTOS, " + CRLF
+	cQy += "	TRIM(TO_CHAR(C6_UDCIDP, '99G999D00')) || '+' || TRIM(TO_CHAR(C6_UDCVEND, '99G999D00')) || '+' || TRIM(TO_CHAR(C6_UDCGPPD, '99G999D00')) || '+' || TRIM(TO_CHAR(C6_UDCCLI, '99G999D00')) AS DESCONTOS, " + CRLF
 	cQy += "	C5_CONDPAG, " + CRLF
 	cQy += "	E4_DESCRI, " + CRLF
 	cQy += "	'SBM_UMOLART' AS DESCONTOS_UMOLART " + CRLF
@@ -414,45 +414,6 @@ user function FATREL58(lComMaFis)
 		MaFisEnd()
 	endIf
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	// Separa itens por página
 	nLinha := 1
 	nItPag := 1
@@ -480,46 +441,6 @@ user function FATREL58(lComMaFis)
 		endIf
 	#ENDIF
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	// Agrupa por produto
 	aGrupPrd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
 	#IFDEF MOSTRA_QUERY
@@ -527,7 +448,7 @@ user function FATREL58(lComMaFis)
 	#ENDIF
 	aGrupPrdI := aSelByIndx(aGrupPrd, {;
 		DADOS_IT_GRUPO_DESCRI, ;
-		DADOS_IT_C6_VALDESC, ;
+		DADOS_IT_DESCONTOS, ;
 		DADOS_IT_VALOR_TOTAL, ;
 		DADOS_IT_IT_VALIPI, ;
 		DADOS_IT_IT_VALSOL, ;
@@ -557,7 +478,7 @@ user function FATREL58(lComMaFis)
 		showLog(VarInfo("aDupl", aDupl, , .F.))
 	#ENDIF
 
-	// Calcula condicao de pagamento por produto
+	// Calcula condicao de pagamento por grupo de produto
 	aGrupPrdCP := aSelByIndx(aGrupPrd, {;
 		DADOS_IT_GRUPO_DESCRI, ;
 		DADOS_IT_E4_DESCRI})
@@ -614,12 +535,12 @@ user function FATREL58(lComMaFis)
 
 			// Imprime por grupo de produtos
 			aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
-			aMedidas := {154, 54, 74, 56, 56, 93, 54, 41}
+			aMedidas := {112, 111, 69, 56, 56, 83, 54, 41}
 			aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
 			printTab(nRowBase1 + 590, nColBase1 + 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdI, @oPrinter)
 
 			// Imprime totais
-			aMedidas := {208, 74, 56, 56, 93, 54, 41}
+			aMedidas := {223, 69, 56, 56, 83, 54, 41}
 			aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
 			printTab(nRowBase1 + 590 + (len(aGrupPrdI) + 1) * 10, nColBase1 + 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
 
@@ -817,6 +738,8 @@ static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 			for nCol := 1 to len(aDados2D[nDadosPos])
 				if nCol != nGroupeBy .and. valType(aDados2D[nDadosPos][nCol]) == "N"
 					aGroup2D[nFoundPos][nCol] += aQuant[nCol]
+				else
+					aGroup2D[nFoundPos][nCol] := aQuant[nCol]
 				endIf
 			next
 		EndIf
