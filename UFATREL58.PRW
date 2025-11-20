@@ -54,8 +54,8 @@ user function FATREL58(lComMaFis)
 	//local oArial25			:= TFont():New( "Arial",,25,.t.,.T.,,,,,.f. )
 	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
 	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
-	//local cPedido			:= "000057" //	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
-	//local cUFilial			:= "01" //	"01"		"0101"		"0101"		"0101"		"0101"		"0101"
+	local cPedido			:= SC5->C5_NUM // 		"000057"	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
+	local cFilPV			:= SC5->C5_FILIAL //	"01"		"0101"		"0101"		"0101"		"0101"		"0101"
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
@@ -84,8 +84,6 @@ user function FATREL58(lComMaFis)
 	local aGrupPrdCP
 	local aDupl
 	local aItPorPag			:= {{}}
-
-	cPedido := SC5->C5_NUM
 
 	cQy := "SELECT " + CRLF
 	cQy += "	C5_NUM, " + CRLF
@@ -140,21 +138,21 @@ user function FATREL58(lComMaFis)
 	cQy += "		" + RetSQLName("SA1") + " SA1 " + CRLF
 	cQy += "		ON C5_CLIENTE = A1_COD " + CRLF
 	cQy += "		AND C5_LOJACLI = A1_LOJA " + CRLF
-	cQy += "		AND A1_FILIAL = '" + FWxFilial("SA1") + "' " + CRLF
+	//cQy += "		AND A1_FILIAL = '" + FWxFilial("SA1") + "' " + CRLF
 	cQy += "		AND SA1.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC6") + " SC6 " + CRLF
 	cQy += "		ON C5_NUM = C6_NUM " + CRLF
-	cQy += "		AND C6_FILIAL = '" + FWxFilial("SC6") + "' " + CRLF
+	cQy += "		AND C6_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "		AND SC6.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SA3") + " SA3 " + CRLF
 	cQy += "		ON C5_VEND1 = A3_COD " + CRLF
-	cQy += "		AND A3_FILIAL = '" + FWxFilial("SA3") + "' " + CRLF
+	//cQy += "		AND A3_FILIAL = '" + FWxFilial("SA3") + "' " + CRLF
 	cQy += "		AND SA3.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
-	cQy += "	AND C5_FILIAL = '" + FWxFilial("SC5") + "' " + CRLF
+	cQy += "	AND C5_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
 	#IFDEF MOSTRA_QUERY
 		showLog(cQy)
@@ -203,26 +201,26 @@ user function FATREL58(lComMaFis)
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC6") + " SC6 " + CRLF
 	cQy += "		ON C5_NUM = C6_NUM " + CRLF
-	cQy += "		AND C6_FILIAL = '" + FWxFilial("SC6") + "' " + CRLF
+	cQy += "		AND C6_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "		AND SC6.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SB1") + " SB1 " + CRLF
 	cQy += "		ON C6_PRODUTO = B1_COD " + CRLF
-	cQy += "		AND B1_FILIAL = '" + FWxFilial("SB1") + "' " + CRLF
+	//cQy += "		AND B1_FILIAL = '" + FWxFilial("SB1") + "' " + CRLF
 	cQy += "		AND SB1.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SBM") + " SBM " + CRLF
 	cQy += "		ON B1_GRUPO = BM_GRUPO " + CRLF
-	cQy += "		AND BM_FILIAL = '" + FWxFilial("SBM") + "' " + CRLF
+	//cQy += "		AND BM_FILIAL = '" + FWxFilial("SBM") + "' " + CRLF
 	cQy += "		AND SBM.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SE4") + " SE4 " + CRLF
 	cQy += "		ON C5_CONDPAG = E4_CODIGO " + CRLF
-	cQy += "		AND E4_FILIAL = '" + FWxFilial("SE4") + "' " + CRLF
+	//cQy += "		AND E4_FILIAL = '" + FWxFilial("SE4") + "' " + CRLF
 	cQy += "		AND SE4.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
-	cQy += "	AND C5_FILIAL = '" + FWxFilial("SC5") + "' " + CRLF
+	cQy += "	AND C5_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
 	cQy += "ORDER BY " + CRLF
 	cQy += "	C5_NUM, C6_ITEM " + CRLF
@@ -253,23 +251,23 @@ user function FATREL58(lComMaFis)
 	cQy += "		" + RetSQLName("SA1") + " SA1 " + CRLF
 	cQy += "		ON C5_CLIENTE = A1_COD " + CRLF
 	cQy += "		AND C5_LOJACLI = A1_LOJA " + CRLF
-	cQy += "		AND A1_FILIAL = '" + FWxFilial("SA1") + "' " + CRLF
+	//cQy += "		AND A1_FILIAL = '" + FWxFilial("SA1") + "' " + CRLF
 	cQy += "		AND SA1.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC6") + " SC6 " + CRLF
 	cQy += "		ON C5_NUM = C6_NUM " + CRLF
-	cQy += "		AND C6_FILIAL = '" + FWxFilial("SC6") + "' " + CRLF
+	cQy += "		AND C6_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "		AND SC6.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC9") + " SC9 " + CRLF
 	cQy += "		ON C6_NUM = C9_PEDIDO " + CRLF
 	cQy += "		AND C6_PRODUTO = C9_PRODUTO " + CRLF
 	cQy += "		AND C6_ITEM = C9_ITEM " + CRLF
-	cQy += "		AND C9_FILIAL = '" + FWxFilial("SC9") + "' " + CRLF
+	cQy += "		AND C9_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "		AND SC9.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
-	cQy += "	AND C5_FILIAL = '" + FWxFilial("SC5") + "' " + CRLF
+	cQy += "	AND C5_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
 	cQy += "ORDER BY " + CRLF
 	cQy += "	C5_NUM, C9_DATALIB DESC " + CRLF
