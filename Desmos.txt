@@ -1,16 +1,22 @@
 Impressora local:
 
-L_{X}=\frac{159}{490}
+#Milimetros por pixel
 
-L_{Y}=\frac{32.2}{100}
+L_{X}=\frac{162.35}{500}
+
+L_{Y}=\frac{68}{210}
+
+#milímetros para pixel
 
 \frac{44.5}{L_{X}}
 
-\frac{44.5}{L_{Y}}
+\frac{32}{L_{Y}}
 
-400\cdot L_{X}
+#pixel para milímetros
 
-400\cdot L_{Y}
+162.35\cdot L_{X}
+
+68\cdot L_{Y}
 
 comparado com a MIT044 impressa:
 

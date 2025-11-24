@@ -205,7 +205,21 @@ WHERE
 GROUP BY 
 	B1_GRUPO, BM_DESC, C5_CONDPAG, E4_DESCRI
 
---
+-- MOstra compartilhamento de tabelas
+
+SELECT 
+	X2_CHAVE, 
+	X2_NOME, 
+	X2_MODO, 
+	X2_MODOUN, 
+	X2_MODOEMP, 
+	SX2.*
+FROM 
+	SX2010 SX2
+WHERE 
+	X2_CHAVE IN('SC5', 'SA1', 'SC6', 'SA3', 'SB1', 'SBM', 'SE4', 'SC9')
+
+-- Tentativa do Thiago
 
 SELECT 
 	BM_GRUPO, 
