@@ -71,6 +71,7 @@ FROM
 	INNER JOIN 
 		SA4010 SA4 
 		ON A4_COD = C5_TRANSP 
+		AND '' = '' 
 		AND SA4.D_E_L_E_T_ = '' 
 WHERE 
 	C5_NUM = '000026' 

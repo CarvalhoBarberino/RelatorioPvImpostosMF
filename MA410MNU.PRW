@@ -3,14 +3,11 @@
 #INCLUDE "RPTDef.ch"
 #include 'parmtype.ch'
 
-#DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
-//#DEFINE MOSTRA_QUERY
-//#DEFINE MOSTRA_GRADE
 #DEFINE IMP_SPOOL		2
 #DEFINE IMP_PDF			6
 #DEFINE SEM_SETUP		.T.
 #DEFINE VIEW_PDF		.T.
-#DEFINE NOME_DO_FONTE	"UFATREL58.PRW"
+#DEFINE NOME_DO_FONTE	"MA410MNU.PRW"
 #DEFINE PAD_LEFT		0
 #DEFINE PAD_RIGHT		1
 #DEFINE PAD_CENTER_H	2
@@ -66,7 +63,7 @@ user function FTREL582()
 	local cAliasC9			:= "REL58C9"
 	local oArial12			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12b			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial15			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	//local oArial15			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial15b			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial20			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 20 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local nRowBase1			:= 0
@@ -95,16 +92,12 @@ user function FTREL582()
 	local aAlinhamento
 
 	cQy := queryC5(cPedido, cFilPV)
-	#IFDEF MOSTRA_QUERY
-		showLog(cQy)
-	#ENDIF
 	if select(cAliasC5) > 0
 		dbSelectArea(cAliasC5)
 		(cAliasC5)->(dbCloseArea())
-	ENDIF
+	endIf
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC5, .F., .T.)
 	dbSelectArea(cAliasC5)
-	(cAliasC5)->(dbGoTop())
 	if (cAliasC5)->(eOF())
 		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
 		FWRestArea(cArea)
@@ -112,16 +105,12 @@ user function FTREL582()
 	endIf
 
 	cQy := queryC6(cPedido, cFilPV)
-	#IFDEF MOSTRA_QUERY
-		showLog(cQy)
-	#ENDIF
 	if select(cAliasC6) > 0
 		dbSelectArea(cAliasC6)
 		(cAliasC6)->(dbCloseArea())
-	ENDIF
+	endIf
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC6, .F., .T.)
 	dbSelectArea(cAliasC6)
-	(cAliasC6)->(dbGoTop())
 	if (cAliasC6)->(eOF())
 		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
 		FWRestArea(cArea)
@@ -129,16 +118,12 @@ user function FTREL582()
 	endIf
 
 	cQy := queryC9(cPedido, cFilPV)
-	#IFDEF MOSTRA_QUERY
-		showLog(cQy)
-	#ENDIF
 	if select(cAliasC9) > 0
 		dbSelectArea(cAliasC9)
 		(cAliasC9)->(dbCloseArea())
-	ENDIF
+	endIf
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC9, .F., .T.)
 	dbSelectArea(cAliasC9)
-	(cAliasC9)->(dbGoTop())
 	if (cAliasC9)->(eOF())
 		MsgAlert("Não existem datas de liberação para este pedido", NOME_DO_FONTE)
 	endIf
@@ -146,7 +131,7 @@ user function FTREL582()
 	MaFisIni(;
 		(cAliasC5)->C5_CLIENTE, ;
 		(cAliasC5)->C5_LOJACLI, ;
-		Iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
+		iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
 		(cAliasC5)->C5_TIPO, ;
 		(cAliasC5)->C5_TIPOCLI, ;
 		MaFisRelImp("MT100", {"SF2", "SD2"}) /*Relacao de Impostos que suportados no arquivo*/, ;
@@ -186,18 +171,18 @@ user function FTREL582()
 	MaFisAlt("NF_SEGURO", (cAliasC5)->C5_SEGURO)
 	MaFisAlt("NF_DESPESA", (cAliasC5)->C5_DESPESA)
 	MaFisAlt("NF_AUTONOMO", (cAliasC5)->C5_FRETAUT)
-	If (cAliasC5)->C5_DESCONT > 0
+	if (cAliasC5)->C5_DESCONT > 0
 		MaFisAlt(;
 			"NF_DESCONTO", ;
 			Min(MaFisRet(, "NF_VALMERC")-0.01, (cAliasC5)->C5_DESCONT+MaFisRet(, "NF_DESCONTO"));
 			)
-	EndIf
-	If (cAliasC5)->C5_PDESCAB > 0
+	endIf
+	if (cAliasC5)->C5_PDESCAB > 0
 		MaFisAlt(;
 			"NF_DESCONTO", ;
 			A410Arred(MaFisRet(, "NF_VALMERC") * (cAliasC5)->C5_PDESCAB / 100, "C6_VALOR") + MaFisRet(, "NF_DESCONTO");
 			)
-	EndIf
+	endIf
 
 	nI := 0
 	aImpIT := {}
@@ -255,9 +240,6 @@ user function FTREL582()
 
 		(cAliasC6)->(dbSkip())
 	endDo
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aDados", aDados, , .F.))
-	#ENDIF
 	MaFisEnd()
 
 	// Separa itens por página
@@ -279,19 +261,9 @@ user function FTREL582()
 			endIf
 		endIf
 	next
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aItPorPag", aItPorPag, , .F.))
-		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
-			FWRestArea(cArea)
-			return
-		endIf
-	#ENDIF
 
 	// Agrupa por grupo de produto
 	aGrupPrd := aGroupBy(aDados, DA_GRUPO_DESCRI)
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGroupBy", aGrupPrd, , .F.))
-	#ENDIF
 	aGrupPrdI := aSelByIndx(aGrupPrd, {;
 		DA_GRUPO_DESCRI, ;
 		DA_DESCONTOS, ;
@@ -302,24 +274,15 @@ user function FTREL582()
 		DA_PESO_TOTAL, ;
 		DA_QUANT ;
 		})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
-	#ENDIF
 
 	// Calcula Total de agrupamento por produto
 	aGrupPrdS := aSelByIndx(aGrupPrdI, {2, 3, 4, 5, 6, 7, 8})
 	aGrupPrdS := aGroupBy(aGrupPrdS, 0)
 	aGrupPrdS := aToStr(aGrupPrdS, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
 	aGrupPrdS[1,1] := "Totais"
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdS", aGrupPrdS, , .F.))
-	#ENDIF
 
 	// Transforma grupo de produto em string
 	aGrupPrdI := aToStr(aGrupPrdI, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
-	#ENDIF
 
 	// Totaliza valor e peso de cada categoria SBM_UMOLART
 	aGrpMolArt := aSelByIndx(aDados, {DA_D_UMOLA, DA_VALOR_TOTAL, DA_PESO_TOTAL})
@@ -328,7 +291,7 @@ user function FTREL582()
 	// Inicio da parte gráfica
 	oPrinter := FWMsPrinter():New(;
 		cNomeDoArquivo /*cFilePrintert*/, ;
-		iif(TESTE_PDF, IMP_PDF, IMP_SPOOL) /*nDevice*/, ;
+		IMP_PDF /*nDevice*/, ;
 		.F. /*lAdjustToLegacy*/, ;
 		/*cPathInServer*/, ;
 		SEM_SETUP /*lDisabeSetup */, ;
@@ -460,26 +423,26 @@ user function FTREL582()
 	printTab(530 + (len(aGrupPrdI) + 1) * 10, 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
 
 	oPrinter:EndPage()
-	If TESTE_PDF
-		//MsgAlert("com TESTE_PDF ", NOME_DO_FONTE)
-		oPrinter:Setup()
-		oPrinter:Preview()
-	Else
-		oPrinter:Print()
-	EndIf
+	oPrinter:Setup()
+	oPrinter:Preview()
 	FreeObj(oPrinter)
 	oPrinter := Nil
 	FWRestArea(cArea)
 return
 
+/*/{Protheus.doc} UFINR85
+	Funcao que gera relatorios de pedido de vendas com impostos e sem impostos
+	@type user function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 user function FTREL581(lComMaFis)
 	local oPrinter
 	local oArial18b			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	//local oArial15			:= TFont():New( "Arial",,15,.t.,.T.,,,,,.f. )
-	//local oArial10			:= TFont():New( "Arial",,10,.t.,.T.,,,,,.f. )
-	local cPedido			:= SC5->C5_NUM // 		"000057"	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
-	local cFilPV			:= SC5->C5_FILIAL //	"01"		"0101"		"0101"		"0101"		"0101"		"0101"
-	local cNomeDoArquivo	:= "PV" + cPedido // iif(lComMaFis, "PV " + cPedido + " com impostos.pdf", "PV " + cPedido + " sem impostos.pdf")
+	local cPedido			:= SC5->C5_NUM
+	local cFilPV			:= SC5->C5_FILIAL
+	local cNomeDoArquivo	:= "PV" + cPedido + iif(lComMaFis, "f", "")
 	local cQy
 	local cAliasC5			:= "REL58C5"
 	local cAliasC6			:= "REL58C6"
@@ -492,14 +455,11 @@ user function FTREL581(lComMaFis)
 	local cArea				:= FWGetArea()
 	local nRowBase1			:= 0
 	local nColBase1			:= 0
-	//local nRowBase2			:= 0
-	//local nColBase2			:= 0
 	local nI				:= 0
 	local nLimitJus			:= 33
 	local nLimitFol			:= 63
 	local nLinha
 	local nItPag
-	//local aImpostos			:= {}
 	local aDados
 	local aDadosIt
 	local aGrupPrd
@@ -510,16 +470,12 @@ user function FTREL581(lComMaFis)
 	local aItPorPag			:= {{}}
 
 	cQy := queryC5(cPedido, cFilPV)
-	#IFDEF MOSTRA_QUERY
-		showLog(cQy)
-	#ENDIF
 	if select(cAliasC5) > 0
 		dbSelectArea(cAliasC5)
 		(cAliasC5)->(dbCloseArea())
-	ENDIF
+	endIf
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC5, .F., .T.)
 	dbSelectArea(cAliasC5)
-	(cAliasC5)->(dbGoTop())
 	if (cAliasC5)->(eOF())
 		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
 		FWRestArea(cArea)
@@ -527,16 +483,12 @@ user function FTREL581(lComMaFis)
 	endIf
 
 	cQy := queryC6(cPedido, cFilPV)
-	#IFDEF MOSTRA_QUERY
-		showLog(cQy)
-	#ENDIF
 	if select(cAliasC6) > 0
 		dbSelectArea(cAliasC6)
 		(cAliasC6)->(dbCloseArea())
-	ENDIF
+	endIf
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC6, .F., .T.)
 	dbSelectArea(cAliasC6)
-	(cAliasC6)->(dbGoTop())
 	if (cAliasC6)->(eOF())
 		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
 		FWRestArea(cArea)
@@ -544,16 +496,12 @@ user function FTREL581(lComMaFis)
 	endIf
 
 	cQy := queryC9(cPedido, cFilPV)
-	#IFDEF MOSTRA_QUERY
-		showLog(cQy)
-	#ENDIF
 	if select(cAliasC9) > 0
 		dbSelectArea(cAliasC9)
 		(cAliasC9)->(dbCloseArea())
-	ENDIF
+	endIf
 	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC9, .F., .T.)
 	dbSelectArea(cAliasC9)
-	(cAliasC9)->(dbGoTop())
 	if (cAliasC9)->(eOF())
 		MsgAlert("Não existem datas de liberação para este pedido", NOME_DO_FONTE)
 	endIf
@@ -562,7 +510,7 @@ user function FTREL581(lComMaFis)
 		MaFisIni(;
 			(cAliasC5)->C5_CLIENTE, ;
 			(cAliasC5)->C5_LOJACLI, ;
-			Iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
+			iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
 			(cAliasC5)->C5_TIPO, ;
 			(cAliasC5)->C5_TIPOCLI, ;
 			MaFisRelImp("MT100", {"SF2", "SD2"}) /*Relacao de Impostos que suportados no arquivo*/, ;
@@ -602,18 +550,18 @@ user function FTREL581(lComMaFis)
 		MaFisAlt("NF_SEGURO", (cAliasC5)->C5_SEGURO)
 		MaFisAlt("NF_DESPESA", (cAliasC5)->C5_DESPESA)
 		MaFisAlt("NF_AUTONOMO", (cAliasC5)->C5_FRETAUT)
-		If (cAliasC5)->C5_DESCONT > 0
+		if (cAliasC5)->C5_DESCONT > 0
 			MaFisAlt(;
 				"NF_DESCONTO", ;
 				Min(MaFisRet(, "NF_VALMERC")-0.01, (cAliasC5)->C5_DESCONT+MaFisRet(, "NF_DESCONTO"));
 				)
-		EndIf
-		If (cAliasC5)->C5_PDESCAB > 0
+		endIf
+		if (cAliasC5)->C5_PDESCAB > 0
 			MaFisAlt(;
 				"NF_DESCONTO", ;
 				A410Arred(MaFisRet(, "NF_VALMERC") * (cAliasC5)->C5_PDESCAB / 100, "C6_VALOR") + MaFisRet(, "NF_DESCONTO");
 				)
-		EndIf
+		endIf
 	endIf
 
 	nI := 0
@@ -679,9 +627,6 @@ user function FTREL581(lComMaFis)
 
 		(cAliasC6)->(dbSkip())
 	endDo
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aDados", aDados, , .F.))
-	#ENDIF
 	if lComMaFis
 		MaFisEnd()
 	endIf
@@ -705,19 +650,9 @@ user function FTREL581(lComMaFis)
 			endIf
 		endIf
 	next
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aItPorPag", aItPorPag, , .F.))
-		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
-			FWRestArea(cArea)
-			return
-		endIf
-	#ENDIF
 
 	// Agrupa por grupo de produto
 	aGrupPrd := aGroupBy(aDados, DA_GRUPO_DESCRI)
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGroupBy", aGrupPrd, , .F.))
-	#ENDIF
 	aGrupPrdI := aSelByIndx(aGrupPrd, {;
 		DA_GRUPO_DESCRI, ;
 		DA_DESCONTOS, ;
@@ -728,50 +663,32 @@ user function FTREL581(lComMaFis)
 		DA_PESO_TOTAL, ;
 		DA_QUANT ;
 		})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
-	#ENDIF
 
 	// Calcula Total de agrupamento por produto
 	aGrupPrdS := aSelByIndx(aGrupPrdI, {2, 3, 4, 5, 6, 7, 8})
 	aGrupPrdS := aGroupBy(aGrupPrdS, 0)
 	aGrupPrdS := aToStr(aGrupPrdS, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
 	aGrupPrdS[1,1] := "Totais"
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdS", aGrupPrdS, , .F.))
-	#ENDIF
 
 	// Calcula condicoes de pagamento
 	(cAliasC9)->(dbGoTop())
 	aDupl := Condicao(nSomaCol(aGrupPrdI, 6), (cAliasC5)->CONDICAO_PAG, , sToD((cAliasC9)->C9_DATALIB))
 	aDupl := aEnumera(aDupl, 0)
 	aDupl := aImparPar(aDupl)
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aDupl", aDupl, , .F.))
-	#ENDIF
 
 	// Calcula condicao de pagamento por grupo de produto
 	aGrupPrdCP := aSelByIndx(aGrupPrd, {;
 		DA_GRUPO_DESCRI, ;
 		DA_E4_DESCRI})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdCP", aGrupPrdCP, , .F.))
-	#ENDIF
 	aGrupPrdCP := aToStr(aGrupPrdCP, {"", ""})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdCP", aGrupPrdCP, , .F.))
-	#ENDIF
 
 	// Transforma grupo de produto em string
 	aGrupPrdI := aToStr(aGrupPrdI, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
-	#IFDEF MOSTRA_QUERY
-		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
-	#ENDIF
 
 	// Inicio da parte gráfica
 	oPrinter := FWMsPrinter():New(;
 		cNomeDoArquivo /*cFilePrintert*/, ;
-		iif(TESTE_PDF, IMP_PDF, IMP_SPOOL) /*nDevice*/, ;
+		IMP_PDF /*nDevice*/, ;
 		.F. /*lAdjustToLegacy*/, ;
 		/*cPathInServer*/, ;
 		SEM_SETUP /*lDisabeSetup */, ;
@@ -836,18 +753,21 @@ user function FTREL581(lComMaFis)
 	next
 
 	oPrinter:EndPage()
-	If TESTE_PDF
-		//MsgAlert("com TESTE_PDF ", NOME_DO_FONTE)
-		oPrinter:Setup()
-		oPrinter:Preview()
-	Else
-		oPrinter:Print()
-	EndIf
+	oPrinter:Setup()
+	oPrinter:Preview()
 	FreeObj(oPrinter)
 	oPrinter := Nil
 	FWRestArea(cArea)
 return
 
+/*/{Protheus.doc} queryC5
+	Funcao que gera monta query dos dados de cabeçalho
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+	@return cQy
+/*/
 static function queryC5(cPedido, cFilPV)
 	local cQy := ""
 
@@ -907,29 +827,37 @@ static function queryC5(cPedido, cFilPV)
 	cQy += "		" + RetSQLName("SA1") + " SA1 " + CRLF
 	cQy += "		ON C5_CLIENTE = A1_COD " + CRLF
 	cQy += "		AND C5_LOJACLI = A1_LOJA " + CRLF
-	//cQy += "		AND A1_FILIAL = '" + FWxFilial("SA1") + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SA1") + " " + CRLF
 	cQy += "		AND SA1.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC6") + " SC6 " + CRLF
 	cQy += "		ON C5_NUM = C6_NUM " + CRLF
-	cQy += "		AND C6_FILIAL = '" + cFilPV + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SC6") + " " + CRLF
 	cQy += "		AND SC6.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SA3") + " SA3 " + CRLF
 	cQy += "		ON C5_VEND1 = A3_COD " + CRLF
-	//cQy += "		AND A3_FILIAL = '" + FWxFilial("SA3") + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SA3") + " " + CRLF
 	cQy += "		AND SA3.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SA4") + " SA4 " + CRLF
 	cQy += "		ON A4_COD = C5_TRANSP " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SA4") + " " + CRLF
 	cQy += "		AND SA4.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
 	cQy += "	AND C5_FILIAL = '" + cFilPV + "' " + CRLF
 	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
-
 return cQy
 
+/*/{Protheus.doc} queryC6
+	Funcao que gera monta query dos dados de itens
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+	@return cQy
+/*/
 static function queryC6(cPedido, cFilPV)
 	local cQy := ""
 
@@ -965,22 +893,22 @@ static function queryC6(cPedido, cFilPV)
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC6") + " SC6 " + CRLF
 	cQy += "		ON C5_NUM = C6_NUM " + CRLF
-	cQy += "		AND C6_FILIAL = '" + cFilPV + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SC6") + " " + CRLF
 	cQy += "		AND SC6.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SB1") + " SB1 " + CRLF
 	cQy += "		ON C6_PRODUTO = B1_COD " + CRLF
-	//cQy += "		AND B1_FILIAL = '" + FWxFilial("SB1") + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SB1") + " " + CRLF
 	cQy += "		AND SB1.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SBM") + " SBM " + CRLF
 	cQy += "		ON B1_GRUPO = BM_GRUPO " + CRLF
-	//cQy += "		AND BM_FILIAL = '" + FWxFilial("SBM") + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SBM") + " " + CRLF
 	cQy += "		AND SBM.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	LEFT JOIN " + CRLF
 	cQy += "		" + RetSQLName("SE4") + " SE4 " + CRLF
 	cQy += "		ON C5_CONDPAG = E4_CODIGO " + CRLF
-	//cQy += "		AND E4_FILIAL = '" + FWxFilial("SE4") + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SE4") + " " + CRLF
 	cQy += "		AND SE4.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
@@ -988,9 +916,16 @@ static function queryC6(cPedido, cFilPV)
 	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
 	cQy += "ORDER BY " + CRLF
 	cQy += "	C5_NUM, C6_ITEM " + CRLF
-
 return cQy
 
+/*/{Protheus.doc} queryC9
+	Funcao que gera monta query dos dados de liberação
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+	@return cQy
+/*/
 static function queryC9(cPedido, cFilPV)
 	local cQy := ""
 
@@ -1005,19 +940,19 @@ static function queryC9(cPedido, cFilPV)
 	cQy += "		" + RetSQLName("SA1") + " SA1 " + CRLF
 	cQy += "		ON C5_CLIENTE = A1_COD " + CRLF
 	cQy += "		AND C5_LOJACLI = A1_LOJA " + CRLF
-	//cQy += "		AND A1_FILIAL = '" + FWxFilial("SA1") + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SA1") + " " + CRLF
 	cQy += "		AND SA1.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC6") + " SC6 " + CRLF
 	cQy += "		ON C5_NUM = C6_NUM " + CRLF
-	cQy += "		AND C6_FILIAL = '" + cFilPV + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SC6") + " " + CRLF
 	cQy += "		AND SC6.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	INNER JOIN " + CRLF
 	cQy += "		" + RetSQLName("SC9") + " SC9 " + CRLF
 	cQy += "		ON C6_NUM = C9_PEDIDO " + CRLF
 	cQy += "		AND C6_PRODUTO = C9_PRODUTO " + CRLF
 	cQy += "		AND C6_ITEM = C9_ITEM " + CRLF
-	cQy += "		AND C9_FILIAL = '" + cFilPV + "' " + CRLF
+	cQy += "		AND " + FWJoinFilial("SC5", "SC9") + " " + CRLF
 	cQy += "		AND SC9.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
@@ -1025,9 +960,15 @@ static function queryC9(cPedido, cFilPV)
 	cQy += "	AND SC5.D_E_L_E_T_ = '' " + CRLF
 	cQy += "ORDER BY " + CRLF
 	cQy += "	C5_NUM, C9_DATALIB DESC " + CRLF
-
 return cQy
 
+/*/{Protheus.doc} printTab
+	Funcao que imprime tabela
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function printTab(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFields, aData, oPrinterRec)
 	local nRowCount		:= 1
 	local nColCount		:= 1
@@ -1060,9 +1001,15 @@ static function printTab(nRowInicio, nColInicio, nRowHeight, aWidth, aAlign, aFi
 		next
 		nCol_0 := nColInicio
 	next
-
 return
 
+/*/{Protheus.doc} cabFama
+	Funcao que imprime cabeçalho molas Fama
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 	local nRowBase1		:= 76
 	local nColBase1		:= 4
@@ -1084,9 +1031,15 @@ static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1 + nDeltaY2, nColBase1, "ROD. BR 376 KM 232, S/N SAIDA P/ MARINGA - CAIXA POSTAL 917, APUCARANA/PR - Fone: (43) 3420-9000 Fax: (43) 3420-9001", oArial11, nWidthCab, nDeltaY2, , PAD_CENTER_H, 2)
 	oPrinterRec:SayBitmap(nRowBase1 + 0, nColBase1, "\testeLogo.bmp", 90, 36)
 	oPrinterRec:SayBitmap(nRowBase1 + 0, nColBase1 + nWidthCab - 90, "\testeLogo.bmp", 90, 36)
-
 return
 
+/*/{Protheus.doc} rodaPeC5
+	Funcao que imprime rodapé
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function rodaPeC5(nRowBase1, nColBase1, oPrinterRec, cPedido, cAliasC5)
 	local nWidth		:= 586
 	local nDeltaY1		:= 10
@@ -1102,6 +1055,13 @@ static function rodaPeC5(nRowBase1, nColBase1, oPrinterRec, cPedido, cAliasC5)
 	oPrinterRec:SayAlign(nRowBase1 + nDeltaY1, nColBase1 + 220, "Representante: " + cVendedor, oArial11, nWidth, nDeltaY1, , PAD_LEFT, 2)
 return
 
+/*/{Protheus.doc} rodaPeFim
+	Funcao que imprime roda pé final
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function rodaPeFim(oPrinterRec, cAliasC5, cAliasC9)
 	local nRowBase1		:= 713
 	local nColBase1		:= 4
@@ -1129,11 +1089,17 @@ static function rodaPeFim(oPrinterRec, cAliasC5, cAliasC9)
 	oPrinterRec:SayAlign(nRowBase1 + 110, nColBase1 + nWidthPe - nWidSign, "Análise crítica - Data: " + cDataLib, oArial18b, nWidSign, 30, , PAD_CENTER_H, 2)
 return
 
+/*/{Protheus.doc} cabC5
+	Funcao que imprime cabeçalho do PV
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function cabC5(nRowBase1, nColBase1, oPrinterRec, cAliasC5)
 
 	local nWidthCab		:= 590
 	local nDeltaY1		:= 10
-	//local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial12		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 
@@ -1156,9 +1122,15 @@ static function cabC5(nRowBase1, nColBase1, oPrinterRec, cAliasC5)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 249, (cAliasC5)->CLI_IE, oArial12, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 357, "E-mail: ", oArial12b, 15,,)
 	oPrinterRec:Say(nRowBase1 + 4 * nDeltaY1, nColBase1 + 392, (cAliasC5)->CLI_EMAIL, oArial12, 15,,)
-
 return
 
+/*/{Protheus.doc} aGroupBy
+	Funcao que agrupa
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 	local aGroup2D			:= {} As Array
 	local cGroupText		:= "" As Character
@@ -1176,11 +1148,11 @@ static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 		next
 
 		nFoundPos := 0
-		If Len(aGroup2D) > 0
+		if Len(aGroup2D) > 0
 			nFoundPos := aScan(aGroup2D, iif(nGroupeBy != 0, {|y| y[nGroupeBy] == cGroupText}, {|y| .T.}))
-		EndIf
+		endIf
 
-		If nFoundPos == 0
+		if nFoundPos == 0
 			aAdd(aGroup2D, aQuant)
 		Else
 			for nCol := 1 to len(aDados2D[nDadosPos])
@@ -1190,10 +1162,17 @@ static function aGroupBy(aDados2D as array, nGroupeBy as Numeric)
 					aGroup2D[nFoundPos][nCol] := aQuant[nCol]
 				endIf
 			next
-		EndIf
+		endIf
 	Next
 return aGroup2D
 
+/*/{Protheus.doc} aSelByIndx
+	Funcao que seleciona colunas
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function aSelByIndx(aOrig2D, aIndex)
 	local aRet		:= {}
 	local aItem		:= {}
@@ -1212,9 +1191,15 @@ static function aSelByIndx(aOrig2D, aIndex)
 		next
 		aAdd(aRet, aItem)
 	next
-
 return aRet
 
+/*/{Protheus.doc} aToStr
+	Funcao que transforma em string
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function aToStr(aDados2D, aMascara)
 	local nRow
 	local nCol
@@ -1231,6 +1216,13 @@ static function aToStr(aDados2D, aMascara)
 	next
 return aRet
 
+/*/{Protheus.doc} nSomaCol
+	Funcao que soma coluna
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function nSomaCol(aDados2D, nCampo)
 	local nRow		:= 0
 	local nSoma		:= 0
@@ -1242,6 +1234,13 @@ static function nSomaCol(aDados2D, nCampo)
 	next
 return nSoma
 
+/*/{Protheus.doc} aImparPar
+	Funcao que separa condicoes de pagamento esquerda direita
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function aImparPar(aRec)
 	local aOri		:= aClone(aRec)
 	local nRow		:= 0
@@ -1256,6 +1255,13 @@ static function aImparPar(aRec)
 	next
 return {aImpar, aPar}
 
+/*/{Protheus.doc} aEnumera
+	Funcao que cria coluna enumerada
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function aEnumera(aOri, nShift)
 	local aRet		:= {}
 	local nRow		:= 0
@@ -1269,6 +1275,13 @@ static function aEnumera(aOri, nShift)
 	next
 return aRet
 
+/*/{Protheus.doc} grade
+	Funcao que imprime grade
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 20/10/2025
+	@version 0
+/*/
 static function grade(nRowBase, nColBase, aHeights, aWidths, oPrinterRec)
 	local nHeiTot	:= 0
 	local nWidTot	:= 0
@@ -1294,6 +1307,5 @@ static function grade(nRowBase, nColBase, aHeights, aWidths, oPrinterRec)
 		nWidAux += aWidths[nI]
 		oPrinterRec:Line(nRowBase, nColBase + nWidAux, nRowBase + nHeiTot, nColBase + nWidAux, , "-2" )
 	next
-
 return
 
