@@ -1,6 +1,7 @@
 #INCLUDE "PROTHEUS.CH"
 #INCLUDE "FWPrintSetup.ch"
 #INCLUDE "RPTDef.ch"
+#include 'parmtype.ch'
 
 #DEFINE TESTE_PDF		.T. // True significa que o fonte está sendo utilizado em testes e não usa a impressora, usa apenas a visualização em PDF, pois nos testes em homologação não é possível usar a impressora
 //#DEFINE MOSTRA_QUERY
@@ -18,53 +19,80 @@
 #DEFINE PAD_BOTTOM		2
 
 // Numeracao dentro do array aDadosIt
-#DEFINE DADOS_IT_C5_NUM				1
-#DEFINE DADOS_IT_C6_NFORI			2
-#DEFINE DADOS_IT_C6_SERIORI			3
-#DEFINE DADOS_IT_SB1_REC			4
-#DEFINE DADOS_IT_ITEM				5
-#DEFINE DADOS_IT_DESCON				6
-#DEFINE DADOS_IT_QUANT				7
-#DEFINE DADOS_IT_EMB				8
-#DEFINE DADOS_IT_UNIDADE			9
-#DEFINE DADOS_IT_CODIGO_FAMA		10
-#DEFINE DADOS_IT_B1_PESO			11
-#DEFINE DADOS_IT_C6_PRODUTO			12
-#DEFINE DADOS_IT_C6_TES				13
-#DEFINE DADOS_IT_DESCRICAO			14
-#DEFINE DADOS_IT_B1_GRUPO			15
-#DEFINE DADOS_IT_C6_VALDESC			16
-#DEFINE DADOS_IT_VALOR_UNI			17
-#DEFINE DADOS_IT_VALOR_TOTAL		18
-#DEFINE DADOS_IT_C5_FRETE			19
-#DEFINE DADOS_IT_IT_ALIQIPI			20
-#DEFINE DADOS_IT_IT_VALIPI			21
-#DEFINE DADOS_IT_IT_VALSOL			22
-#DEFINE DADOS_IT_VALOR_C_IMPOSTOS	23
-#DEFINE DADOS_IT_PESO_TOTAL			24
-#DEFINE DADOS_IT_GRUPO_COD			25
-#DEFINE DADOS_IT_GRUPO_DESCRI		26
-#DEFINE DADOS_IT_DESCONTOS			27
-#DEFINE DADOS_IT_C5_CONDPAG			28
-#DEFINE DADOS_IT_E4_DESCRI			29
-#DEFINE DADOS_IT_DESCONTOS_UMOLART	30
+#DEFINE DA_C5_NUM				1
+#DEFINE DA_C6_NFORI				2
+#DEFINE DA_C6_SERIORI			3
+#DEFINE DA_SB1_REC				4
+#DEFINE DA_ITEM					5
+#DEFINE DA_DESCON				6
+#DEFINE DA_QUANT				7
+#DEFINE DA_EMB					8
+#DEFINE DA_UNIDADE				9
+#DEFINE DA_CODIGO_FAMA			10
+#DEFINE DA_B1_PESO				11
+#DEFINE DA_C6_PRODUTO			12
+#DEFINE DA_C6_TES				13
+#DEFINE DA_DESCRICAO			14
+#DEFINE DA_B1_GRUPO				15
+#DEFINE DA_C6_VALDESC			16
+#DEFINE DA_VALOR_UNI			17
+#DEFINE DA_VALOR_TOTAL			18
+#DEFINE DA_C5_FRETE				19
+#DEFINE DA_IT_ALIQIPI			20
+#DEFINE DA_IT_VALIPI			21
+#DEFINE DA_IT_VALSOL			22
+#DEFINE DA_VALOR_C_IMPOSTOS		23
+#DEFINE DA_PESO_TOTAL			24
+#DEFINE DA_GRUPO_COD			25
+#DEFINE DA_GRUPO_DESCRI			26
+#DEFINE DA_DESCONTOS			27
+#DEFINE DA_C5_CONDPAG			28
+#DEFINE DA_E4_DESCRI			29
+#DEFINE DA_D_UMOLA				30
+#DEFINE DA_COMIS1				31
+
+user function MA410MNU()
+	aadd(aRotina,{'Rel.Pv c/Impostos','U_FTREL581(.T.)' , 0 , 1,0,NIL})
+	aadd(aRotina,{'Rel.Pv s/Impostos','U_FTREL581(.F.)' , 0 , 1,0,NIL})
+return
 
 user function FTREL582()
 	local oPrinter
-	local cNomeDoArquivo	:= "teste.pdf"
-	local cArea			:= FWGetArea()
+	local cArea				:= FWGetArea()
+	local nI				:= 0
 	local cQy
-	local cAliasC5		:= "REL58C5"
-	local oArial12		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial12b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial15		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial15b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local oArial20		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 20 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
-	local nRowBase1		:= 0
-	local nColBase1		:= 0
-	local nRowDelta		:= 0
-	local cPedido		:= "000057" // 		"000009"	"000057"	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
-	local cFilPV		:= "0101" //		"01"		"0101"		"0101"		"0101"		"0101"		"0101"
+	local cAliasC5			:= "REL58C5"
+	local cAliasC6			:= "REL58C6"
+	local cAliasC9			:= "REL58C9"
+	local oArial12			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial12b			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 12 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial15			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial15b			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 15 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial20			:= TFont():New("Arial" /*cName*/, /*uPar2*/, 20 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local nRowBase1			:= 0
+	local nColBase1			:= 0
+	local nRowDelta			:= 0
+	local cPedido			:= "000057" // 		"000009"	"000057"	"000011"	"000014"	"000055"	"000031"	"000015"	"000057"
+	local cFilPV			:= "0101" //		"01"		"0101"		"0101"		"0101"		"0101"		"0101"
+	local cNomeDoArquivo	:= "PV" + cPedido + ".pdf"
+	local aImpIT			:= {}
+	local aDados			:= {}
+	local aDadosIt			:= {}
+	local aImpITCol			:= {}
+	local nLimitJus			:= 33
+	local nLimitFol			:= 63
+	local nLinha
+	local nItPag
+	local aItPorPag			:= {{}}
+	local aGrupPrd
+	local aGrupPrdI
+	local aGrupPrdS
+	local aGrpMolArt
+	local nLinMol
+	local nLinArt
+	local aCampos
+	local aMedidas
+	local aAlinhamento
 
 	cQy := queryC5(cPedido, cFilPV)
 	#IFDEF MOSTRA_QUERY
@@ -82,7 +110,221 @@ user function FTREL582()
 		FWRestArea(cArea)
 		return
 	endIf
-	
+
+	cQy := queryC6(cPedido, cFilPV)
+	#IFDEF MOSTRA_QUERY
+		showLog(cQy)
+	#ENDIF
+	if select(cAliasC6) > 0
+		dbSelectArea(cAliasC6)
+		(cAliasC6)->(dbCloseArea())
+	ENDIF
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC6, .F., .T.)
+	dbSelectArea(cAliasC6)
+	(cAliasC6)->(dbGoTop())
+	if (cAliasC6)->(eOF())
+		MsgAlert("O pedido não foi encontrado", NOME_DO_FONTE)
+		FWRestArea(cArea)
+		return
+	endIf
+
+	cQy := queryC9(cPedido, cFilPV)
+	#IFDEF MOSTRA_QUERY
+		showLog(cQy)
+	#ENDIF
+	if select(cAliasC9) > 0
+		dbSelectArea(cAliasC9)
+		(cAliasC9)->(dbCloseArea())
+	ENDIF
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasC9, .F., .T.)
+	dbSelectArea(cAliasC9)
+	(cAliasC9)->(dbGoTop())
+	if (cAliasC9)->(eOF())
+		MsgAlert("Não existem datas de liberação para este pedido", NOME_DO_FONTE)
+	endIf
+
+	MaFisIni(;
+		(cAliasC5)->C5_CLIENTE, ;
+		(cAliasC5)->C5_LOJACLI, ;
+		Iif((cAliasC5)->C5_TIPO $ "D;B", "F", "C"), ;
+		(cAliasC5)->C5_TIPO, ;
+		(cAliasC5)->C5_TIPOCLI, ;
+		MaFisRelImp("MT100", {"SF2", "SD2"}) /*Relacao de Impostos que suportados no arquivo*/, ;
+		/*Tipo de complemento*/, ;
+		/*Permite Incluir Impostos no Rodape .T./.F.*/, ;
+		"SB1" /*Alias do Cadastro de Produtos - ("SBI" P/ Front Loja)*/, ;
+		"MATA410" /*Nome da rotina que esta utilizando a funcao*/;
+		)
+
+	nI := 0
+	(cAliasC6)->(dbGoTop())
+	while !(cAliasC6)->(eOF())
+		nI++
+		MaFisAdd(;
+			(cAliasC6)->C6_PRODUTO, ;
+			(cAliasC6)->C6_TES, ;
+			(cAliasC6)->QUANT, ;
+			(cAliasC6)->VALOR_UNI, ;
+			(cAliasC6)->C6_VALDESC, ;
+			(cAliasC6)->C6_NFORI, ;
+			(cAliasC6)->C6_SERIORI, ;
+			0 /*RecNo da NF Original no arq SD1/SD2*/,;
+			0 /*Valor do Frete do Item               ( Opcional )*/, ;
+			0 /*Valor da Despesa do item             ( Opcional )*/, ;
+			0 /*Valor do Seguro do item              ( Opcional )*/, ;
+			0 /*Valor do Frete Autonomo              ( Opcional )*/, ;
+			(cAliasC6)->VALOR_TOTAL /*Valor da Mercadoria                  ( Obrigatorio )*/, ;
+			0 /*Valor da Embalagem                   ( Opcional )*/, ;
+			(cAliasC6)->SB1_REC /*RecNo do SB1*/, ;
+			0 /*RecNo do SF4*/)
+		MaFisLoad("IT_VALMERC", (cAliasC6)->VALOR_TOTAL, nI)
+		MaFisAlt("IT_PESO", (cAliasC6)->B1_PESO, nI)
+		(cAliasC6)->(dbSkip())
+	endDo
+
+	MaFisAlt("NF_FRETE", (cAliasC5)->C5_FRETE)
+	MaFisAlt("NF_SEGURO", (cAliasC5)->C5_SEGURO)
+	MaFisAlt("NF_DESPESA", (cAliasC5)->C5_DESPESA)
+	MaFisAlt("NF_AUTONOMO", (cAliasC5)->C5_FRETAUT)
+	If (cAliasC5)->C5_DESCONT > 0
+		MaFisAlt(;
+			"NF_DESCONTO", ;
+			Min(MaFisRet(, "NF_VALMERC")-0.01, (cAliasC5)->C5_DESCONT+MaFisRet(, "NF_DESCONTO"));
+			)
+	EndIf
+	If (cAliasC5)->C5_PDESCAB > 0
+		MaFisAlt(;
+			"NF_DESCONTO", ;
+			A410Arred(MaFisRet(, "NF_VALMERC") * (cAliasC5)->C5_PDESCAB / 100, "C6_VALOR") + MaFisRet(, "NF_DESCONTO");
+			)
+	EndIf
+
+	nI := 0
+	aImpIT := {}
+	aDados := {}
+	(cAliasC6)->(dbGoTop())
+	while !(cAliasC6)->(eOF())
+		nI++
+		aDadosIt := {}
+		aAdd(aDadosIt, (cAliasC6)->C5_NUM)
+		aAdd(aDadosIt, (cAliasC6)->C6_NFORI)
+		aAdd(aDadosIt, (cAliasC6)->C6_SERIORI)
+		aAdd(aDadosIt, (cAliasC6)->SB1_REC)
+		aAdd(aDadosIt, (cAliasC6)->ITEM)
+		aAdd(aDadosIt, (cAliasC6)->DESCON)
+		aAdd(aDadosIt, (cAliasC6)->QUANT)
+		aAdd(aDadosIt, (cAliasC6)->EMB)
+		aAdd(aDadosIt, (cAliasC6)->UNIDADE)
+		aAdd(aDadosIt, (cAliasC6)->CODIGO_FAMA)
+		aAdd(aDadosIt, (cAliasC6)->B1_PESO)
+		aAdd(aDadosIt, (cAliasC6)->C6_PRODUTO)
+		aAdd(aDadosIt, (cAliasC6)->C6_TES)
+		aAdd(aDadosIt, (cAliasC6)->DESCRICAO)
+		aAdd(aDadosIt, (cAliasC6)->B1_GRUPO)
+		aAdd(aDadosIt, (cAliasC6)->C6_VALDESC)
+		aAdd(aDadosIt, (cAliasC6)->VALOR_UNI)
+		aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL)
+		aAdd(aDadosIt, (cAliasC6)->C5_FRETE)
+		aAdd(aDadosIt, MaFisRet(nI, "IT_ALIQIPI"))
+		aAdd(aDadosIt, MaFisRet(nI, "IT_VALIPI"))
+		aAdd(aDadosIt, MaFisRet(nI, "IT_VALSOL"))
+		aAdd(aDadosIt, (cAliasC6)->VALOR_TOTAL + MaFisRet(nI, "IT_ALIQIPI") + MaFisRet(nI, "IT_VALIPI") + MaFisRet(nI, "IT_VALSOL"))
+		aAdd(aDadosIt, (cAliasC6)->QUANT * (cAliasC6)->B1_PESO)
+		aAdd(aDadosIt, (cAliasC6)->GRUPO_COD)
+		aAdd(aDadosIt, (cAliasC6)->GRUPO_DESCRI)
+		aAdd(aDadosIt, (cAliasC6)->DESCONTOS)
+		aAdd(aDadosIt, (cAliasC6)->C5_CONDPAG)
+		aAdd(aDadosIt, (cAliasC6)->E4_DESCRI)
+		aAdd(aDadosIt, (cAliasC6)->DESCONTOS_UMOLART)
+		aAdd(aDadosIt, (cAliasC6)->C6_COMIS1)
+		aAdd(aDados, aDadosIt)
+
+		aImpITCol := {}
+		aAdd(aImpITCol, (cAliasC6)->ITEM)
+		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->DESCON, "@E 99.99")))
+		aAdd(aImpITCol, cValToChar((cAliasC6)->QUANT))
+		aAdd(aImpITCol, cValToChar((cAliasC6)->EMB))
+		aAdd(aImpITCol, (cAliasC6)->UNIDADE)
+		aAdd(aImpITCol, Alltrim((cAliasC6)->CODIGO_FAMA))
+		aAdd(aImpITCol, Alltrim((cAliasC6)->DESCRICAO))
+		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9,999.99")))
+		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99,999.99")))
+		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DA_IT_ALIQIPI], "@E 99.99")))
+		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DA_IT_VALIPI], "@E 9,999.99")))
+		aAdd(aImpIT, aImpITCol)
+
+		(cAliasC6)->(dbSkip())
+	endDo
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aDados", aDados, , .F.))
+	#ENDIF
+	MaFisEnd()
+
+	// Separa itens por página
+	nLinha := 1
+	nItPag := 1
+	for nI := 1 to len(aImpIT)
+		if nLinha <= nLimitJus
+			aAdd(aItPorPag[nItPag], aImpIT[nI])
+			nLinha++
+		else
+			if len(aImpIT) == nI .or. nLimitFol < nLinha
+				nItPag++
+				nI--
+				nLinha := 1
+				aAdd(aItPorPag, {})
+			else
+				aAdd(aItPorPag[nItPag], aImpIT[nI])
+				nLinha++
+			endIf
+		endIf
+	next
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aItPorPag", aItPorPag, , .F.))
+		if !MsgYesNo("Continuar o programa?", NOME_DO_FONTE)
+			FWRestArea(cArea)
+			return
+		endIf
+	#ENDIF
+
+	// Agrupa por grupo de produto
+	aGrupPrd := aGroupBy(aDados, DA_GRUPO_DESCRI)
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGroupBy", aGrupPrd, , .F.))
+	#ENDIF
+	aGrupPrdI := aSelByIndx(aGrupPrd, {;
+		DA_GRUPO_DESCRI, ;
+		DA_DESCONTOS, ;
+		DA_VALOR_TOTAL, ;
+		DA_IT_VALIPI, ;
+		DA_IT_VALSOL, ;
+		DA_VALOR_C_IMPOSTOS, ;
+		DA_PESO_TOTAL, ;
+		DA_QUANT ;
+		})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
+	#ENDIF
+
+	// Calcula Total de agrupamento por produto
+	aGrupPrdS := aSelByIndx(aGrupPrdI, {2, 3, 4, 5, 6, 7, 8})
+	aGrupPrdS := aGroupBy(aGrupPrdS, 0)
+	aGrupPrdS := aToStr(aGrupPrdS, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
+	aGrupPrdS[1,1] := "Totais"
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdS", aGrupPrdS, , .F.))
+	#ENDIF
+
+	// Transforma grupo de produto em string
+	aGrupPrdI := aToStr(aGrupPrdI, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
+	#IFDEF MOSTRA_QUERY
+		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
+	#ENDIF
+
+	// Totaliza valor e peso de cada categoria SBM_UMOLART
+	aGrpMolArt := aSelByIndx(aDados, {DA_D_UMOLA, DA_VALOR_TOTAL, DA_PESO_TOTAL})
+	aGrpMolArt := aGroupBy(aDados, 1)
+
 	// Inicio da parte gráfica
 	oPrinter := FWMsPrinter():New(;
 		cNomeDoArquivo /*cFilePrintert*/, ;
@@ -114,16 +356,16 @@ user function FTREL582()
 	oPrinter:Say(nRowBase1 + 1 * nRowDelta, nColBase1 + 77, "____/____/________", oArial12, 15,,)
 
 	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 0, "Data Digitado:", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 77, "____/____/________", oArial12, 15,,)
+	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 77, cValToChar(sTod(((cAliasC5)->EMISSAO))), oArial12, 15,,)
 
 	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 0, "Data Validado:", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 77, "____/____/________", oArial12, 15,,)
+	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 77, cValToChar(sTod(((cAliasC9)->C9_DATALIB))), oArial12, 15,,)
 
 	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 0, "Data Liberado:", oArial12, 15,,)
 	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 77, "____/____/________", oArial12, 15,,)
 
 	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "Data Confirmado:", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 77, "____/____/________", oArial12, 15,,)
+	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 77, cValToChar(sTod(((cAliasC9)->C9_DATALIB))), oArial12, 15,,)
 
 	oPrinter:Say(nRowBase1 + 6 * nRowDelta, nColBase1 + 0, "Data NF:", oArial12, 15,,)
 	oPrinter:Say(nRowBase1 + 6 * nRowDelta, nColBase1 + 39, "____/____/________  Nro NF: ____________", oArial12, 15,,)
@@ -131,22 +373,17 @@ user function FTREL582()
 	nRowBase1 := 67
 	nColBase1 := 248
 	nRowDelta := 15
-	oPrinter:Say(nRowBase1 + 1 * nRowDelta, nColBase1 + 50, "CPF( )", oArial12b, 15,,)
+	oPrinter:Say(nRowBase1 + 1 * nRowDelta, nColBase1 + 50, iif((cAliasC5)->A1_UPARC == "Sim", "CPF(X)", "CPF( )"), oArial12b, 15,,)
 	oPrinter:Say(nRowBase1 + 1 * nRowDelta, nColBase1 + 180, "Pedido: " + cPedido, oArial20, 15,,)
-
-	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 70, "( ) PROGRAMADO", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 170, "( ) IMEDIATO", oArial12, 15,,)
-
+	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 70, iif((cAliasC5)->C5_UPROGIME == "1", "(X) PROGRAMADO", "( ) PROGRAMADO"), oArial12, 15,,)
+	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 170, iif((cAliasC5)->C5_UPROGIME == "2", "(X) IMEDIATO", "( ) IMEDIATO"), oArial12, 15,,)
 	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 0, "Representante: ", oArial12b, 15,,)
 	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 75, "XXXXXXXXXXXXXXX", oArial12b, 15,,)
-
 	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 0, "Artefatos: ", oArial12b, 15,,)
 	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 75, "3,00%", oArial12b, 15,,)
 	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 250, "DF MG", oArial20, 15,,)
-
 	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "Planas: ", oArial12b, 15,,)
 	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 75, "3,00%", oArial12b, 15,,)
-
 	oPrinter:Say(nRowBase1 + 6 * nRowDelta, nColBase1 + 0, "Helicoidais: ", oArial12b, 15,,)
 	oPrinter:Say(nRowBase1 + 6 * nRowDelta, nColBase1 + 75, "3,00%", oArial12b, 15,,)
 
@@ -164,30 +401,63 @@ user function FTREL582()
 	nRowDelta := 15
 	oPrinter:Say(nRowBase1 + 1 * nRowDelta, nColBase1 + 151, "Frete", oArial20, 15,,)
 	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 0, "( )FOB MG   FOB/CIF   ( )CIF 1   (X)CIF 2   ( )CIF Grande BH", oArial15b, 15,,)
-	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 0, "Transp. Despacho:", oArial12, 15,,)
+	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 0, "Transp. Despacho: " + (cAliasC5)->A4_NOME, oArial12, 15,,)
 	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 0, "Transp. Redespacho:", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "Valor a ser cobrado na NF: R$ 0,00", oArial12, 15,,)
+	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "Valor a ser cobrado na NF: R$ " + cValToChar((cAliasC5)->C5_FRETE) + "", oArial12, 15,,)
 
 	nRowBase1 := 246
 	nColBase1 := 8
 	nRowDelta := 15
+	nLinMol := 1
 	oPrinter:Say(nRowBase1 + 1 * nRowDelta, nColBase1 + 59, "Desconto Molas", oArial20, 15,,)
-	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 0, "Conven.: 15,65 + 20,00 + 13,00 - R$18,72 Kg", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 0, "Parab.: 15,65 + 20,00 + 19,00 - R$24,44 Kg", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 0, "Cond. Pgto: 30/45/60/75/90 - Líquido", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "R$ 1.950,26 - R$24,44 Kg", oArial12, 15,,)
+	for nI := 1 to len(aGrupPrd)
+		if aGrupPrd[nI, DA_D_UMOLA] == "1"
+			nLinMol++
+			oPrinter:Say(nRowBase1 + nLinMol * nRowDelta, nColBase1 + 0, Alltrim(aGrupPrd[nI, DA_GRUPO_DESCRI]) + ": " + Alltrim(aGrupPrd[nI, DA_DESCONTOS]) + " - R$" + Alltrim(Transform(aGrupPrd[nI, DA_VALOR_TOTAL] / aGrupPrd[nI, DA_PESO_TOTAL], "@E 9,999.99")), oArial12, 15,,)
+		endIf
+	next
+	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "Cond. Pgto: " + aDados[1, DA_E4_DESCRI], oArial12, 15,,)
+	for nI := 1 to len(aGrpMolArt)
+		if aGrpMolArt[nI, 1] == "1"
+			oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, " - Líquido R$" + Alltrim(Transform(aGrpMolArt[nI, 1], "@E 99.999.99")) + " - " + Alltrim(Transform(aGrpMolArt[nI, 3], "@E 9,999.99")) + " Kg", oArial12, 15,,)
+		endIf
+	next
 
 	nRowBase1 := 246
 	nColBase1 := 248
 	nRowDelta := 15
+	nLinArt := 1
 	oPrinter:Say(nRowBase1 + 1 * nRowDelta, nColBase1 + 102, "Desconto Artefatos", oArial20, 15,,)
-	oPrinter:Say(nRowBase1 + 2 * nRowDelta, nColBase1 + 0, "Artefatos: 21,86 + 10,00 + 31,84 + 6,00 - R$18,72 Kg", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 3 * nRowDelta, nColBase1 + 0, "Fundidos: 15,65 + 20,00 + 19,00 - R$24,44 Kg", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 4 * nRowDelta, nColBase1 + 0, "Grampos: 15,65 + 20,00 + 19,00 - R$24,44 Kg", oArial12, 15,,)
-	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "Cond.Pgto: 30/45/60/75/90 - Líquido R$0,00 - R$0,00 Kg", oArial12, 15,,)
+	for nI := 1 to len(aGrupPrd)
+		if aGrupPrd[nI, DA_D_UMOLA] == "2"
+			nLinArt++
+			oPrinter:Say(nRowBase1 + nLinArt * nRowDelta, nColBase1 + 0, Alltrim(aGrupPrd[nI, DA_GRUPO_DESCRI]) + ": " + Alltrim(aGrupPrd[nI, DA_DESCONTOS]) + " - R$" + Alltrim(Transform(aGrupPrd[nI, DA_VALOR_TOTAL] / aGrupPrd[nI, DA_PESO_TOTAL], "@E 9,999.99")), oArial12, 15,,)
+		endIf
+	next
+	oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, "Cond. Pgto: " + aDados[1, DA_E4_DESCRI], oArial12, 15,,)
+	for nI := 1 to len(aGrpMolArt)
+		if aGrpMolArt[nI, 1] == "2"
+			oPrinter:Say(nRowBase1 + 5 * nRowDelta, nColBase1 + 0, " - Líquido R$" + Alltrim(Transform(aGrpMolArt[nI, 1], "@E 99.999.99")) + " - " + Alltrim(Transform(aGrpMolArt[nI, 3], "@E 9,999.99")) + " Kg", oArial12, 15,,)
+		endIf
+	next
 
-	
-	
+	// Imprime lista de itens
+	aCampos := {"Item", "%Desc", "Qtde Ped.", "Emb", "Un", "Código Fama", "Descrição", "Valor unitário", "Valor Total", "%IPI", "Valor IPI"}
+	aMedidas := {29, 38, 38, 33, 24, 65, 176, 52, 57, 29, 45}
+	aAlinhamento := {PAD_CENTER_H, PAD_RIGHT, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_CENTER_H, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+	nI := 1 // provisoriamente enquanto não implementa o for da quebra de página
+	printTab(351, 4, 10, aMedidas, aAlinhamento, aCampos, aItPorPag[nI], @oPrinter)
+
+	// Imprime por grupo de produtos
+	aCampos := {"Grupo", "Descontos", "Valor Liquido", "Valor IPI", "Valor ST", "Total c/ impostos", "Peso(kg)", "Qtde"}
+	aMedidas := {112, 115, 69, 56, 56, 83, 54, 41}
+	aAlinhamento := {PAD_LEFT, PAD_LEFT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+	printTab(530, 4, 10, aMedidas, aAlinhamento, aCampos, aGrupPrdI, @oPrinter)
+
+	// Imprime totais
+	aMedidas := {227, 69, 56, 56, 83, 54, 41}
+	aAlinhamento := {PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}
+	printTab(530 + (len(aGrupPrdI) + 1) * 10, 4, 10, aMedidas, aAlinhamento, , aGrupPrdS, @oPrinter)
 
 	oPrinter:EndPage()
 	If TESTE_PDF
@@ -238,7 +508,7 @@ user function FTREL581(lComMaFis)
 	local aGrupPrdCP
 	local aDupl
 	local aItPorPag			:= {{}}
-	
+
 	cQy := queryC5(cPedido, cFilPV)
 	#IFDEF MOSTRA_QUERY
 		showLog(cQy)
@@ -390,6 +660,7 @@ user function FTREL581(lComMaFis)
 		aAdd(aDadosIt, (cAliasC6)->C5_CONDPAG)
 		aAdd(aDadosIt, (cAliasC6)->E4_DESCRI)
 		aAdd(aDadosIt, (cAliasC6)->DESCONTOS_UMOLART)
+		aAdd(aDadosIt, (cAliasC6)->C6_COMIS1)
 		aAdd(aDados, aDadosIt)
 
 		aImpITCol := {}
@@ -402,8 +673,8 @@ user function FTREL581(lComMaFis)
 		aAdd(aImpITCol, Alltrim((cAliasC6)->DESCRICAO))
 		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->VALOR_UNI, "@E 9,999.99")))
 		aAdd(aImpITCol, Alltrim(Transform((cAliasC6)->VALOR_TOTAL, "@E 99,999.99")))
-		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DADOS_IT_IT_ALIQIPI], "@E 99.99")))
-		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DADOS_IT_IT_VALIPI], "@E 9,999.99")))
+		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DA_IT_ALIQIPI], "@E 99.99")))
+		aAdd(aImpITCol, Alltrim(Transform(aDadosIt[DA_IT_VALIPI], "@E 9,999.99")))
 		aAdd(aImpIT, aImpITCol)
 
 		(cAliasC6)->(dbSkip())
@@ -429,8 +700,8 @@ user function FTREL581(lComMaFis)
 				nLinha := 1
 				aAdd(aItPorPag, {})
 			else
-			aAdd(aItPorPag[nItPag], aImpIT[nI])
-			nLinha++
+				aAdd(aItPorPag[nItPag], aImpIT[nI])
+				nLinha++
 			endIf
 		endIf
 	next
@@ -442,26 +713,26 @@ user function FTREL581(lComMaFis)
 		endIf
 	#ENDIF
 
-	// Agrupa por produto
-	aGrupPrd := aGroupBy(aDados, DADOS_IT_GRUPO_DESCRI)
+	// Agrupa por grupo de produto
+	aGrupPrd := aGroupBy(aDados, DA_GRUPO_DESCRI)
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aGroupBy", aGrupPrd, , .F.))
 	#ENDIF
 	aGrupPrdI := aSelByIndx(aGrupPrd, {;
-		DADOS_IT_GRUPO_DESCRI, ;
-		DADOS_IT_DESCONTOS, ;
-		DADOS_IT_VALOR_TOTAL, ;
-		DADOS_IT_IT_VALIPI, ;
-		DADOS_IT_IT_VALSOL, ;
-		DADOS_IT_VALOR_C_IMPOSTOS, ;
-		DADOS_IT_PESO_TOTAL, ;
-		DADOS_IT_QUANT ;
+		DA_GRUPO_DESCRI, ;
+		DA_DESCONTOS, ;
+		DA_VALOR_TOTAL, ;
+		DA_IT_VALIPI, ;
+		DA_IT_VALSOL, ;
+		DA_VALOR_C_IMPOSTOS, ;
+		DA_PESO_TOTAL, ;
+		DA_QUANT ;
 		})
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aGrupPrdI", aGrupPrdI, , .F.))
 	#ENDIF
 
-	// Calcula Totai de agrupamento por produto
+	// Calcula Total de agrupamento por produto
 	aGrupPrdS := aSelByIndx(aGrupPrdI, {2, 3, 4, 5, 6, 7, 8})
 	aGrupPrdS := aGroupBy(aGrupPrdS, 0)
 	aGrupPrdS := aToStr(aGrupPrdS, {"", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99", "@E 999,999.99"})
@@ -481,8 +752,8 @@ user function FTREL581(lComMaFis)
 
 	// Calcula condicao de pagamento por grupo de produto
 	aGrupPrdCP := aSelByIndx(aGrupPrd, {;
-		DADOS_IT_GRUPO_DESCRI, ;
-		DADOS_IT_E4_DESCRI})
+		DA_GRUPO_DESCRI, ;
+		DA_E4_DESCRI})
 	#IFDEF MOSTRA_QUERY
 		showLog(VarInfo("aGrupPrdCP", aGrupPrdCP, , .F.))
 	#ENDIF
@@ -626,7 +897,10 @@ static function queryC5(cPedido, cFilPV)
 	cQy += "	C5_DESCONT, " + CRLF
 	cQy += "	C5_PDESCAB, " + CRLF
 	cQy += "	C5_FRETAUT, " + CRLF
-	cQy += "	C5_TRANSP " + CRLF
+	cQy += "	C5_TRANSP, " + CRLF
+	cQy += "	A1_UPARC, " + CRLF
+	cQy += "	A4_NOME, " + CRLF
+	cQy += "	'C5_UPROGIME' AS C5_UPROGIME " + CRLF
 	cQy += "FROM " + CRLF
 	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
 	cQy += "	INNER JOIN " + CRLF
@@ -645,6 +919,10 @@ static function queryC5(cPedido, cFilPV)
 	cQy += "		ON C5_VEND1 = A3_COD " + CRLF
 	//cQy += "		AND A3_FILIAL = '" + FWxFilial("SA3") + "' " + CRLF
 	cQy += "		AND SA3.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	INNER JOIN " + CRLF
+	cQy += "		" + RetSQLName("SA4") + " SA4 " + CRLF
+	cQy += "		ON A4_COD = C5_TRANSP " + CRLF
+	cQy += "		AND SA4.D_E_L_E_T_ = '' " + CRLF
 	cQy += "WHERE " + CRLF
 	cQy += "	C5_NUM = '" + cPedido + "' " + CRLF
 	cQy += "	AND C5_FILIAL = '" + cFilPV + "' " + CRLF
@@ -680,7 +958,8 @@ static function queryC6(cPedido, cFilPV)
 	cQy += "	TRIM(TO_CHAR(C6_UDCIDP, '99G999D00')) || '+' || TRIM(TO_CHAR(C6_UDCVEND, '99G999D00')) || '+' || TRIM(TO_CHAR(C6_UDCGPPD, '99G999D00')) || '+' || TRIM(TO_CHAR(C6_UDCCLI, '99G999D00')) AS DESCONTOS, " + CRLF
 	cQy += "	C5_CONDPAG, " + CRLF
 	cQy += "	E4_DESCRI, " + CRLF
-	cQy += "	'SBM_UMOLART' AS DESCONTOS_UMOLART " + CRLF
+	cQy += "	'2' AS DESCONTOS_UMOLART, " + CRLF
+	cQy += "	C6_COMIS1 " + CRLF
 	cQy += "FROM " + CRLF
 	cQy += "	" + RetSQLName("SC5") + " SC5 " + CRLF
 	cQy += "	INNER JOIN " + CRLF
