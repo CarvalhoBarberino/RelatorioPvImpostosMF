@@ -53,6 +53,34 @@ user function MA410MNU()
 	aadd(aRotina,{'Rel.Pv s/Impostos','U_FTREL581(.F.)' , 0 , 1,0,NIL})
 return
 
+user function jukTeste()
+	local aDados		:= { ;
+		{"0101", "molas", 15}, ;
+		{"0101", "artefatos", 16}, ;
+		{"0102", "molas", 17}, ;
+		{"0102", "sucatas", 18}, ;
+		{"0103", "aco", 40}, ;
+		{"0103", "helicid", 35}, ;
+		{"0103", "sucatas", 27} ;
+		}
+	local aFiliais
+	local aGrupos
+	local aTab			:= pivot2D(aDados, 2, 1)
+
+	aFiliais := aSelByIndx(aDados, {1})
+	aFiliais := aGroupBy(aFiliais, 1)
+	aFiliais := aTranspose(aFiliais)
+	aFiliais := aAppendCol({{" "}}, aFiliais)
+
+	aGrupos := aSelByIndx(aDados, {2})
+	aGrupos := aGroupBy(aGrupos, 1)
+
+	
+	aTab := aAppendCol(aGrupos, aTab)
+	aTab := aAppendLin(aFiliais, aTab)
+	showLog(VarInfo("aTab", aTab, , .F.))
+return
+
 user function FTREL582()
 	local oPrinter
 	local cArea				:= FWGetArea()
@@ -1309,3 +1337,64 @@ static function grade(nRowBase, nColBase, aHeights, aWidths, oPrinterRec)
 	next
 return
 
+/*/{Protheus.doc} grade
+	Funcao que pivoteia uma tabela
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 08/12/2025
+	@version 0
+/*/
+static function pivot2D(aEntrada, nOrdLin, nOrdCol)
+	local aColunas	:= aGroupBy(aSelByIndx(aEntrada, {nOrdCol}), 1)
+	local aLinhas	:= aGroupBy(aSelByIndx(aEntrada, {nOrdLin}), 1)
+	local aPivotado	:= {}
+	local nEnt		:= 1
+	local nRow		:= 1
+	local nCol		:= 1
+
+	for nRow := 1 to len(aLinhas)
+		aAdd(aPivotado, {})
+		for nCol := 1 to len(aColunas)
+			aAdd(aPivotado[nRow], 0)
+			for nEnt := 1 to len(aEntrada)
+				if aEntrada[nEnt, nOrdCol] == aColunas[nCol, 1] .and. aEntrada[nEnt, nOrdLin] == aLinhas[nRow, 1]
+					aPivotado[nRow, nCol] := aEntrada[nEnt, 3]
+				endIf
+			next
+		next
+	next
+return aPivotado
+
+static function aAppendCol(aTabOriE, aTabOriD)
+	local aRet := aClone(aTabOriE)
+	local nRow
+	local nCol
+
+	for nRow := 1 to len(aRet)
+		for nCol := 1 to len(aTabOriD[nRow])
+			aAdd(aRet[nRow], aTabOriD[nRow, nCol])
+		next
+	next
+return aRet
+
+static function aAppendLin(aTabOriUp, aTabOriDow)
+	local aRet := aClone(aTabOriUp)
+	local nRow
+
+	for nRow := 1 to len(aTabOriDow)
+		aAdd(aRet, aTabOriDow[nRow])
+	next
+return aRet
+
+static function aTranspose(aRec)
+	local aRet := {}
+	local nCol
+	local nRow
+
+	for nCol := 1 to len(aRec[1])
+		aAdd(aRet, {})
+		for nRow := 1 to len(aRec)
+			aAdd(aRet[nCol], aRec[nRow, nCol])
+		next
+	next
+return aRet
