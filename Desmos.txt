@@ -1,18 +1,18 @@
 Impressora local:
 
-#Milimetros por pixel
+#Milimetros Por Pixel
 
 L_{X}=\frac{162.35}{500}
 
 L_{Y}=\frac{68}{210}
 
-#milímetros para pixel
+#milímetros Para Pixel
 
 \frac{44.5}{L_{X}}
 
 \frac{32}{L_{Y}}
 
-#pixel para milímetros
+#pixel Para Milímetros
 
 162.35\cdot L_{X}
 

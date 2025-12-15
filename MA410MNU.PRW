@@ -65,7 +65,7 @@ user function jukTeste()
 		}
 	local aFiliais
 	local aGrupos
-	local aTab			:= pivot2D(aDados, 2, 1)
+	local aTab			:= aPivot2D(aDados, 2, 1, 3)
 
 	aFiliais := aSelByIndx(aDados, {1})
 	aFiliais := aGroupBy(aFiliais, 1)
@@ -75,10 +75,162 @@ user function jukTeste()
 	aGrupos := aSelByIndx(aDados, {2})
 	aGrupos := aGroupBy(aGrupos, 1)
 
-	
 	aTab := aAppendCol(aGrupos, aTab)
 	aTab := aAppendLin(aFiliais, aTab)
 	showLog(VarInfo("aTab", aTab, , .F.))
+return
+
+user function FTREL583()
+	local oPrinter
+	local cArea				:= FWGetArea()
+	local cAliasRes			:= "REL58RES"
+	local dIni				:= sToD("20240101")
+	local dFim				:= sToD("20270101")
+	local aDadosVal			:= {}
+	local aDadosPes			:= {}
+	local aItVal
+	local aItPes
+	local aTabVal
+	local aTabPes
+	local aTotFilVal
+	local aTotFilPes
+	local aTotGruVal
+	local aTotGruPes
+	local aTotVal
+	local aTotPes
+	local aValMed
+	local aFiliais
+	local aGrupos
+	local cNomeDoArquivo	:= "ResumoVendas.pdf"
+	local aMedidas
+	local aAlinhamen
+	local aMascara			:= {}
+	local nI
+	local nWidthFil
+	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local oArial11		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 11 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
+	local aPergs		:= {}
+
+	aAdd(aPergs, {1, "Data De",		dIni,	"", ".T.", "", ".T.", 80,	.F.})
+	aAdd(aPergs, {1, "Data Até",	dFim,	"", ".T.", "", ".T.", 80,	.F.})
+	If !ParamBox(aPergs, "Informe os parâmetros")
+		msgAlert("Falha ao carregar parametros", NOME_DO_FONTE)
+		FWRestArea(cArea)
+		return
+	else
+		dIni := MV_PAR01
+		dFim := MV_PAR02
+	EndIf
+
+	cQy := queryResum(dIni, dFim)
+	if select(cAliasRes) > 0
+		dbSelectArea(cAliasRes)
+		(cAliasRes)->(dbCloseArea())
+	endIf
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasRes, .F., .T.)
+	dbSelectArea(cAliasRes)
+	if (cAliasRes)->(eOF())
+		MsgAlert("O intervalo entre datas não possui dados", NOME_DO_FONTE)
+		FWRestArea(cArea)
+		return
+	endIf
+
+	while !(cAliasRes)->(eOF())
+		aItVal := {}
+		aItPes := {}
+
+		aAdd(aItVal, (cAliasRes)->NAME_FIL)
+		aAdd(aItVal, (cAliasRes)->BM_DESC)
+		aAdd(aItVal, (cAliasRes)->SUM_D2_TOT)
+
+		aAdd(aItPes, (cAliasRes)->NAME_FIL)
+		aAdd(aItPes, (cAliasRes)->BM_DESC)
+		aAdd(aItPes, (cAliasRes)->SUM_PESO)
+
+		aAdd(aDadosVal, aItVal)
+		aAdd(aDadosPes, aItPes)
+
+		(cAliasRes)->(dbSkip())
+	endDo
+
+	aFiliais := aAppendCol({{"VENDAS"}}, aTranspose(aGroupBy(aSelByIndx(aDadosVal, {1}), 1)))
+	aGrupos := aGroupBy(aSelByIndx(aDadosVal, {2}), 1)
+	aTabVal := aPivot2D(aDadosVal, 2, 1, 3)
+	aTotFilVal := aGroupBy(aTabVal, 0)
+	aTotGruVal := aTranspose(aGroupBy(aTranspose(aTabVal), 0))
+	aTotVal := aGroupBy(aTotGruVal, 0)
+	aTabVal := aAppendCol(aGrupos, aTabVal)
+	aTabVal := aAppendLin(aFiliais, aTabVal)
+	for nI := 1 to len(aTabVal[1])
+		aAdd(aMascara, "@E 9,999,999.99")
+	next
+	aTabVal := aToStr(aTabVal, aMascara)
+	aTabPes := aPivot2D(aDadosPes, 2, 1, 3)
+	aTotFilPes := aGroupBy(aTabPes, 0)
+	aTotGruPes := aTranspose(aGroupBy(aTranspose(aTabPes), 0))
+	aValMed := {}
+	for nI := 1 to len(aTotGruVal)
+		aAdd(aValMed, {})
+		aAdd(aValMed[nI], aTotGruVal[nI, 1] / aTotGruPes[nI, 1])
+	next
+	aTotPes := aGroupBy(aTotGruPes, 0)
+	aTabPes := aAppendCol(aGrupos, aTabPes)
+	aTabPes := aAppendLin(aFiliais, aTabPes)
+	aTabPes[1, 1] := "PESOS"
+	aTabPes := aToStr(aTabPes, aMascara)
+
+	aMedidas := {100}
+	aAlinhamen := {PAD_CENTER_H}
+	nWidthFil := round((586 - 100) / (len(aTabVal[1]) - 1), 0) - 1
+	for nI := 2 to len(aTabVal[1])
+		aAdd(aMedidas, nWidthFil)
+		aAdd(aAlinhamen, PAD_CENTER_H)
+	next
+
+
+	// Inicio da parte gráfica
+	oPrinter := FWMsPrinter():New(;
+		cNomeDoArquivo /*cFilePrintert*/, ;
+		IMP_PDF /*nDevice*/, ;
+		.F. /*lAdjustToLegacy*/, ;
+		/*cPathInServer*/, ;
+		SEM_SETUP /*lDisabeSetup */, ;
+		/*lTReport*/, ;
+		@oPrinter /*@oPrintSetup*/, ;
+		/*cPrinter*/, ;
+		/*lServer*/, ;
+		/*compatibilidade*/, ;
+		/*lRaw*/, ;
+		VIEW_PDF/*lViewPDF*/, ;
+		/*nQtdCopy*/)
+		oPrinter:SetPortrait()
+	oPrinter:SetPaperSize(DMPAPER_A4)
+	oPrinter:SetMargin(3,10,3,10) // nEsquerda, nSuperior, nDireita, nInferior
+	oPrinter:cPathPDF := "C:\TEMP\" // Caso seja utilizada impressï¿½o em IMP_SPOOL
+	oPrinter:StartPage()
+
+	cabFama(@oPrinter, 1/*nPagina*/, 1/*nPaginaTot*/)
+
+	oPrinter:SayAlign(138, 4, "Relatório de Resumo de Vendas Mensal DFs", oArial18b, 586, 20, , PAD_CENTER_H, 2)
+	oPrinter:SayAlign(138 + 18, 4, "Peridodo de: " + dToC(dIni) + " - Periodo até: " + dToC(dFim), oArial11, 586, 20, , PAD_CENTER_H, 2)
+
+	printTab(190, 4, 15, aMedidas, aAlinhamen, /*aCampos*/, aTabVal, @oPrinter)
+	printTab(190 + 15 * len(aTabVal), 4, 15, aMedidas, aAlinhamen, /*aCampos*/, aToStr(aAppendCol({{"TOTAL"}}, aTotFilVal), aMascara), @oPrinter)
+
+	printTab(390, 4, 15, aMedidas, aAlinhamen, /*aCampos*/, aTabPes, @oPrinter)
+	printTab(390 + 15 * len(aTabPes), 4, 15, aMedidas, aAlinhamen, /*aCampos*/, aToStr(aAppendCol({{"TOTAL"}}, aTotFilPes), aMascara), @oPrinter)
+
+	printTab(590, 4, 15, {146, 147, 146, 147}, {PAD_CENTER_H, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}, /*aCampos*/, aToStr(aAppendCol(aAppendCol(aAppendCol(aGrupos, aTotGruVal), aTotGruPes), aValMed), {"", "@E 9,999,999.99", "@E 9,999,999.99", "@E 9,999,999.99"}), @oPrinter)
+
+	// comissao + frete printTab(790, 4, 15, {140, 70}, {PAD_CENTER_H, PAD_CENTER_H}, /*aCampos*/, aTabPes, @oPrinter)
+	printTab(790, 332, 15, {140, 70}, {PAD_CENTER_H, PAD_CENTER_H}, /*aCampos*/, aToStr(aAppendCol({{"TOTAL GERAL VENDAS"}, {"TOTAL GERAL PESO"}}, aAppendLin(aTotGruVal, aTotGruPes)), {"", "@E 9,999,999.99"}), @oPrinter)
+
+	oPrinter:EndPage()
+	oPrinter:Setup()
+	oPrinter:Preview()
+	FreeObj(oPrinter)
+	oPrinter := Nil
+	FWRestArea(cArea)
 return
 
 user function FTREL582()
@@ -990,6 +1142,71 @@ static function queryC9(cPedido, cFilPV)
 	cQy += "	C5_NUM, C9_DATALIB DESC " + CRLF
 return cQy
 
+/*/{Protheus.doc} queryResum
+	Funcao que monta a query do resumo de vendas
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 08/12/2025
+	@version 0
+/*/
+static function queryResum(dIni, dFim)
+	local cQy := ""
+	local cIni		:= dToS(dIni)
+	local cFim		:= dToS(dFim)
+
+	cQy := "SELECT " + CRLF
+	cQy += "	CASE " + CRLF
+	cQy += "		WHEN M0_NOMECOM = 'DF RIBEIRAO PRETO' " + CRLF
+	cQy += "		THEN 'DF Rb' " + CRLF
+	cQy += "		ELSE " + CRLF
+	cQy += "			CASE " + CRLF
+	cQy += "				WHEN M0_NOMECOM = 'DF UBERLANDIA' " + CRLF
+	cQy += "				THEN 'DF Ub' " + CRLF
+	cQy += "				ELSE M0_NOMECOM " + CRLF
+	cQy += "			END " + CRLF
+	cQy += "	END AS NAME_FIL, " + CRLF
+	cQy += "	BM_DESC, " + CRLF
+	cQy += "	SUM(D2_TOTAL) AS SUM_D2_TOT, " + CRLF
+	cQy += "	SUM(D2_QUANT * B1_PESO) AS SUM_PESO " + CRLF
+	cQy += "FROM " + CRLF
+	cQy += "	" + RetSQLName("SD2") + " SD2 " + CRLF
+	cQy += "	INNER JOIN " + RetSQLName("SB1") + " SB1 " + CRLF
+	cQy += "	ON D2_COD = B1_COD " + CRLF
+	cQy += "	AND SB1.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	INNER JOIN " + RetSQLName("SBM") + " SBM" + CRLF
+	cQy += "	ON D2_GRUPO = BM_GRUPO " + CRLF
+	cQy += "	INNER JOIN SYS_COMPANY M0 " + CRLF
+	cQy += "	ON M0_CODFIL = D2_FILIAL " + CRLF
+	cQy += "	INNER JOIN " + RetSQLName("SF4") + " SF4 " + CRLF
+	cQy += "	ON D2_TES = F4_CODIGO " + CRLF
+	cQy += "	AND " + FWJoinFilial("SD2", "SF4") + " " + CRLF
+	cQy += "WHERE " + CRLF
+	cQy += "	D2_FILIAL IN('0101', '0301', '0401', '0501', '0601', '0701', '0801', '0901', '1001', '1101', '1201', '1301') " + CRLF // AVISO retirar a filial '0101', esta sendo usada apenas como teste
+	cQy += "	AND D2_EMISSAO BETWEEN '" + cIni + "' AND '" + cFim + "' " + CRLF
+	cQy += "	AND SD2.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	AND SF4.F4_DUPLIC = 'S' " + CRLF
+	cQy += "GROUP BY " + CRLF
+	cQy += "	M0_NOMECOM, BM_DESC " + CRLF
+	cQy += "ORDER BY " + CRLF
+	cQy += "	M0_NOMECOM, BM_DESC " + CRLF
+	showLog(cQy)
+return cQy
+
+/*/{Protheus.doc} queryResum
+	Funcao que monta a query do resumo de vendas
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 08/12/2025
+	@version 0
+/*/
+static function queryComis(dIni, dFim)
+	local cQy := ""
+	local cIni		:= dToS(dIni)
+	local cFim		:= dToS(dFim)
+
+	cQy := ""
+return cQy
+
 /*/{Protheus.doc} printTab
 	Funcao que imprime tabela
 	@type static function
@@ -1051,7 +1268,7 @@ static function cabFama(oPrinterRec, nPagina, nPaginaTot)
 	local cPagina		:= "Pagina " + cValToChar(nPagina) + "/" + cValToChar(nPaginaTot)
 	local cStamp		:= "Impresso em "+ dToC(Date()) + " - " + Time()
 
-	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60, nColBase1 + nWidthCab, "-2")
+	oPrinterRec:Box(nRowBase1 + 0, nColBase1, nRowBase1 + nDeltaY1 + nDeltaY2 + 60 - 40.5, nColBase1 + nWidthCab, "-2")
 	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1, cPagina, oArial08, nWidthCab, 20, , PAD_CENTER_H, 1)
 	oPrinterRec:SayAlign(nRowBase1 - 20, nColBase1 + round(nWidthCab / 2, 0), cStamp, oArial08, round(nWidthCab / 2, 0), 20, , PAD_RIGHT, 2)
 	oPrinterRec:SayAlign(nRowBase1 + 0, nColBase1, "M O L A S   F A M A", oArial18b, nWidthCab, 30, , PAD_CENTER_H, 2)
@@ -1239,6 +1456,8 @@ static function aToStr(aDados2D, aMascara)
 				aRet[nRow, nCol] := iif(!empty(aMascara[nCol]), Alltrim(Transform(aDados2D[nRow, nCol], aMascara[nCol])), Alltrim(cValToChar(aDados2D[nRow, nCol])))
 			elseIf valType(aDados2D[nRow, nCol]) == "D"
 				aRet[nRow, nCol] := allTrim(dToC(aDados2D[nRow, nCol]))
+			elseIf valType(aDados2D[nRow, nCol]) == "C"
+				aRet[nRow, nCol] := allTrim(aDados2D[nRow, nCol])
 			endIf
 		next
 	next
@@ -1344,7 +1563,7 @@ return
 	@since 08/12/2025
 	@version 0
 /*/
-static function pivot2D(aEntrada, nOrdLin, nOrdCol)
+static function aPivot2D(aEntrada, nOrdLin, nOrdCol, nColTarget)
 	local aColunas	:= aGroupBy(aSelByIndx(aEntrada, {nOrdCol}), 1)
 	local aLinhas	:= aGroupBy(aSelByIndx(aEntrada, {nOrdLin}), 1)
 	local aPivotado	:= {}
@@ -1358,7 +1577,7 @@ static function pivot2D(aEntrada, nOrdLin, nOrdCol)
 			aAdd(aPivotado[nRow], 0)
 			for nEnt := 1 to len(aEntrada)
 				if aEntrada[nEnt, nOrdCol] == aColunas[nCol, 1] .and. aEntrada[nEnt, nOrdLin] == aLinhas[nRow, 1]
-					aPivotado[nRow, nCol] := aEntrada[nEnt, 3]
+					aPivotado[nRow, nCol] := aEntrada[nEnt, nColTarget]
 				endIf
 			next
 		next
