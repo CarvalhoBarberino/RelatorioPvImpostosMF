@@ -7,7 +7,7 @@
 #DEFINE IMP_PDF			6
 #DEFINE SEM_SETUP		.T.
 #DEFINE VIEW_PDF		.T.
-#DEFINE NOME_DO_FONTE	"MA410MNU.PRW"
+#DEFINE NOME_DO_FONTE	"UFATREL58.PRW"
 #DEFINE PAD_LEFT		0
 #DEFINE PAD_RIGHT		1
 #DEFINE PAD_CENTER_H	2
@@ -47,38 +47,6 @@
 #DEFINE DA_E4_DESCRI			29
 #DEFINE DA_D_UMOLA				30
 #DEFINE DA_COMIS1				31
-
-user function MA410MNU()
-	aadd(aRotina,{'Rel.Pv c/Impostos','U_FTREL581(.T.)' , 0 , 1,0,NIL})
-	aadd(aRotina,{'Rel.Pv s/Impostos','U_FTREL581(.F.)' , 0 , 1,0,NIL})
-return
-
-user function jukTeste()
-	local aDados		:= { ;
-		{"0101", "molas", 15}, ;
-		{"0101", "artefatos", 16}, ;
-		{"0102", "molas", 17}, ;
-		{"0102", "sucatas", 18}, ;
-		{"0103", "aco", 40}, ;
-		{"0103", "helicid", 35}, ;
-		{"0103", "sucatas", 27} ;
-		}
-	local aFiliais
-	local aGrupos
-	local aTab			:= aPivot2D(aDados, 2, 1, 3)
-
-	aFiliais := aSelByIndx(aDados, {1})
-	aFiliais := aGroupBy(aFiliais, 1)
-	aFiliais := aTranspose(aFiliais)
-	aFiliais := aAppendCol({{" "}}, aFiliais)
-
-	aGrupos := aSelByIndx(aDados, {2})
-	aGrupos := aGroupBy(aGrupos, 1)
-
-	aTab := aAppendCol(aGrupos, aTab)
-	aTab := aAppendLin(aFiliais, aTab)
-	showLog(VarInfo("aTab", aTab, , .F.))
-return
 
 user function FTREL583()
 	local oPrinter
@@ -632,7 +600,7 @@ user function FTREL582()
 	FWRestArea(cArea)
 return
 
-/*/{Protheus.doc} UFINR85
+/*/{Protheus.doc} FTREL581
 	Funcao que gera relatorios de pedido de vendas com impostos e sem impostos
 	@type user function
 	@author Julio Carvalho Barberino
@@ -646,9 +614,9 @@ user function FTREL581(lComMaFis)
 	local cFilPV			:= SC5->C5_FILIAL
 	local cNomeDoArquivo	:= "PV" + cPedido + iif(lComMaFis, "f", "")
 	local cQy
-	local cAliasC5			:= "REL58C5"
-	local cAliasC6			:= "REL58C6"
-	local cAliasC9			:= "REL58C9"
+	local cAliasC5			:= GetNextAlias()
+	local cAliasC6			:= GetNextAlias()
+	local cAliasC9			:= GetNextAlias()
 	local aImpITCol			:= {}
 	local aCampos			:= {}
 	local aMedidas			:= {}
@@ -1203,7 +1171,7 @@ static function queryResum(dIni, dFim)
 	cQy += "	ON D2_TES = F4_CODIGO " + CRLF
 	cQy += "	AND " + FWJoinFilial("SD2", "SF4") + " " + CRLF
 	cQy += "WHERE " + CRLF
-	cQy += "	D2_FILIAL IN('0101', '0301', '0401', '0501', '0601', '0701', '0801', '0901', '1001', '1101', '1201', '1301') " + CRLF // AVISO retirar a filial '0101', esta sendo usada apenas como teste
+	cQy += "	D2_FILIAL IN('0301', '0401', '0501', '0601', '0701', '0801', '0901', '1001', '1101', '1201', '1301') " + CRLF // AVISO retirar a filial '0101', esta sendo usada apenas como teste
 	cQy += "	AND D2_EMISSAO BETWEEN '" + cIni + "' AND '" + cFim + "' " + CRLF
 	cQy += "	AND SD2.D_E_L_E_T_ = '' " + CRLF
 	cQy += "	AND SF4.F4_DUPLIC = 'S' " + CRLF
@@ -1543,7 +1511,7 @@ static function nSomaCol(aDados2D, nCampo)
 return nSoma
 
 /*/{Protheus.doc} aImparPar
-	Funcao que separa condicoes de pagamento esquerda direita
+	Funcao que separa condicoes de pagamento Impar (esquerda) Par (direita)
 	@type static function
 	@author Julio Carvalho Barberino
 	@since 20/10/2025
