@@ -84,6 +84,7 @@ user function FTREL583()
 	local oPrinter
 	local cArea				:= FWGetArea()
 	local cAliasRes			:= "REL58RES"
+	local cAliasCom			:= "REL58COM"
 	local dIni				:= sToD("20240101")
 	local dFim				:= sToD("20270101")
 	local aDadosVal			:= {}
@@ -110,6 +111,7 @@ user function FTREL583()
 	local oArial18b		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 18 /*nHeight*/, .t./*compatibilidade .t.*/, .T./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local oArial11		:= TFont():New("Arial" /*cName*/, /*uPar2*/, 11 /*nHeight*/, .t./*compatibilidade .t.*/, .F./*lBold*/, /*uPar6*/, /*uPar7*/, /*uPar8*/, /*uPar9*/, .F./*lUnderline*/, /*lItalic*/)
 	local aPergs		:= {}
+	local aComisFret
 
 	aAdd(aPergs, {1, "Data De",		dIni,	"", ".T.", "", ".T.", 80,	.F.})
 	aAdd(aPergs, {1, "Data Até",	dFim,	"", ".T.", "", ".T.", 80,	.F.})
@@ -187,6 +189,20 @@ user function FTREL583()
 		aAdd(aAlinhamen, PAD_CENTER_H)
 	next
 
+	cQy := queryComis(dIni, dFim)
+	if select(cAliasCom) > 0
+		dbSelectArea(cAliasCom)
+		(cAliasCom)->(dbCloseArea())
+	endIf
+	dbUseArea( .T., 'TOPCONN', TCGENQRY(,,ChangeQuery(cQy)), cAliasCom, .F., .T.)
+	dbSelectArea(cAliasCom)
+	if (cAliasCom)->(eOF())
+		MsgAlert("O intervalo entre datas não possui dados", NOME_DO_FONTE)
+		FWRestArea(cArea)
+		return
+	endIf
+
+	aComisFret := {{(cAliasCom)->SUM_COMIS1}, {(cAliasCom)->SUM_COMIS2}, {(cAliasCom)->SUM_FRETE}}
 
 	// Inicio da parte gráfica
 	oPrinter := FWMsPrinter():New(;
@@ -222,8 +238,14 @@ user function FTREL583()
 
 	printTab(590, 4, 15, {146, 147, 146, 147}, {PAD_CENTER_H, PAD_RIGHT, PAD_RIGHT, PAD_RIGHT}, /*aCampos*/, aToStr(aAppendCol(aAppendCol(aAppendCol(aGrupos, aTotGruVal), aTotGruPes), aValMed), {"", "@E 9,999,999.99", "@E 9,999,999.99", "@E 9,999,999.99"}), @oPrinter)
 
+		/*
+	comissao + frete.
+	comissão vem do SD2 e frete vem do SF2. Isso vai dar problema
+	*/
 	// comissao + frete printTab(790, 4, 15, {140, 70}, {PAD_CENTER_H, PAD_CENTER_H}, /*aCampos*/, aTabPes, @oPrinter)
+
 	printTab(790, 332, 15, {140, 70}, {PAD_CENTER_H, PAD_CENTER_H}, /*aCampos*/, aToStr(aAppendCol({{"TOTAL GERAL VENDAS"}, {"TOTAL GERAL PESO"}}, aAppendLin(aTotGruVal, aTotGruPes)), {"", "@E 9,999,999.99"}), @oPrinter)
+
 
 	oPrinter:EndPage()
 	oPrinter:Setup()
@@ -1192,19 +1214,58 @@ static function queryResum(dIni, dFim)
 	showLog(cQy)
 return cQy
 
-/*/{Protheus.doc} queryResum
-	Funcao que monta a query do resumo de vendas
+/*/{Protheus.doc} queryComis
+	Funcao que monta a query do resumo de comissao
 	@type static function
 	@author Julio Carvalho Barberino
-	@since 08/12/2025
+	@since 15/12/2025
 	@version 0
 /*/
 static function queryComis(dIni, dFim)
-	local cQy := ""
+	local cQy
 	local cIni		:= dToS(dIni)
 	local cFim		:= dToS(dFim)
 
-	cQy := ""
+	cQy := "SELECT " + CRLF
+	cQy += "	SUM(D2_COMIS1) AS SUM_COMIS1, " + CRLF
+	cQy += "	SUM(D2_COMIS2) AS SUM_COMIS2 " + CRLF
+	cQy += "FROM " + CRLF
+	cQy += "	" + RetSQLName("SD2") + " SD2 " + CRLF
+	cQy += "	INNER JOIN " + RetSQLName("SF4") + " SF4 " + CRLF
+	cQy += "	ON D2_TES = F4_CODIGO " + CRLF
+	cQy += "	AND " + FWJoinFilial("SD2", "SF4") + " " + CRLF
+	cQy += "WHERE " + CRLF
+	cQy += "	D2_FILIAL IN('0101', '0301', '0401', '0501', '0601', '0701', '0801', '0901', '1001', '1101', '1201', '1301') " + CRLF // AVISO retirar a filial '0101', esta sendo usada apenas como teste
+	cQy += "	AND D2_EMISSAO BETWEEN '" + cIni + "' AND '" + cFim + "' " + CRLF
+	cQy += "	AND SD2.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	AND SF4.F4_DUPLIC = 'S' " + CRLF
+return cQy
+
+/*/{Protheus.doc} queryFrete
+	Funcao que monta a query do resumo de comissao
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 15/12/2025
+	@version 0
+/*/
+static function queryFrete(dIni, dFim)
+	local cQy
+	local cIni		:= dToS(dIni)
+	local cFim		:= dToS(dFim)
+
+	cQy := "SELECT " + CRLF
+	cQy += "	SUM(D2_COMIS1) AS SUM_COMIS1, " + CRLF
+	cQy += "	SUM(D2_COMIS2) AS SUM_COMIS2 " + CRLF
+	cQy += "FROM " + CRLF
+	cQy += "	" + RetSQLName("SD2") + " SD2 " + CRLF
+	cQy += "	INNER JOIN " + RetSQLName("SF4") + " SF4 " + CRLF
+	cQy += "	ON D2_TES = F4_CODIGO " + CRLF
+	cQy += "	AND " + FWJoinFilial("SD2", "SF4") + " " + CRLF
+	cQy += "WHERE " + CRLF
+	cQy += "	D2_FILIAL IN('0101', '0301', '0401', '0501', '0601', '0701', '0801', '0901', '1001', '1101', '1201', '1301') " + CRLF // AVISO retirar a filial '0101', esta sendo usada apenas como teste
+	cQy += "	AND D2_EMISSAO BETWEEN '" + cIni + "' AND '" + cFim + "' " + CRLF
+	cQy += "	AND SD2.D_E_L_E_T_ = '' " + CRLF
+	cQy += "	AND SF4.F4_DUPLIC = 'S' " + CRLF
 return cQy
 
 /*/{Protheus.doc} printTab
